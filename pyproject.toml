@@ -1,0 +1,15 @@
+[project]
+name = "chatops"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "dotenv>=0.9.9",
+    "google-genai>=1.57.0",
+    "groq>=1.0.0",
+    "langchain>=1.2.3",
+    "langchain-google-genai>=4.2.0",
+    "openai>=2.14.0",
+    "tiktoken>=0.12.0",
+]

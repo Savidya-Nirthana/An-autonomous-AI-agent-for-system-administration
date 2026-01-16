@@ -1,0 +1,1 @@
+[{"role": "user", "content": "create a folder called main"}, {"role": "assistant", "content": "I have created a folder called main."}, {"role": "user", "content": "inside this folder create a file called main.txt and type \"hellow main\""}, {"role": "assistant", "content": "I have created a file called main.txt with the content \"hellow main\" inside the main folder."}]
