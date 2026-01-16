@@ -9,10 +9,12 @@ import subprocess
 import sys
 import getpass
 import os
+from rich.live import Live
+import time
 
 
 def check_packages():
-    packages = ["rich" ,"pyfiglet","getpass","sys","subprocess","importlib","os"]
+    packages = ["rich" ,"pyfiglet","getpass","sys","subprocess","importlib","os", "langchain"]
     for package in packages:
         try:
             importlib.import_module(package)
@@ -56,14 +58,31 @@ def welcome_msg():
     except:
         console.print(Text("Error on welcome"))
 
+def pending_message(message=""):
+    try:
+        console = Console()
+        with console.status(f"[bold yellow]{message}[/bold yellow]", spinner="aesthetic"): time.sleep(10)
+    except:
+        console.print("[bold red]Error on pending...[/bold red]")
+    
+def live_update(responses=""):
+    console = Console()
+    with Live(console=console, refresh_per_second=4) as live:
+        for response in responses:
+            live.update(f"[bold yellow]{response}[/bold yellow]", )
+            time.sleep(2)
+        live.update("")
+
 def get_requests():
     try:
         console = Console()
-        
         console.print('[bold green]Request >>>[/bold green]' ,end=" ")
         request = console.input()
         
-        if request.lower() == "exit" : return False
+        if request.lower() == "exit" : return False             #end the program
+        if request.lower() == "pending" : pending_message(message = "")     #show pending screen
+        resp =[ "Hello, how can I help?", "Here’s some context about your query...", "Final answer: use Rich Live to update dynamically!" ]
+        if request.lower() == "liveupdate" : live_update(resp)  #to view live updates one by one at time
 
         print(f"your request is {request}")
         return True
