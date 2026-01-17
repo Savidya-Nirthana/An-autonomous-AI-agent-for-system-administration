@@ -2,6 +2,7 @@ from typing import Literal
 from langchain.agents import create_agent
 from tools.filesystem import make_dir, create_file, change_dir, list_dir
 from tools.network import ping
+from tools.firewallandsecurity import firewall_status
 
 class AgentClient:
     def __init__(self, llm, agent_name: Literal["filesystem", "admin", "genaral"]):
@@ -26,6 +27,13 @@ class AgentClient:
             return create_agent(
                 model=self.llm_client,
                 tools=[ping],
+                system_prompt="You are a helpful assistant who can perform network operations",
+            )
+
+        elif self.agent_name == "firewallandsecurity":
+            return create_agent(
+                model=self.llm_client,
+                tools=[firewall_status],
                 system_prompt="You are a helpful assistant who can perform network operations",
             )
 

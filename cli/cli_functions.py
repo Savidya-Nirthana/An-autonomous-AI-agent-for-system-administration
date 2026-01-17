@@ -11,6 +11,7 @@ import getpass
 import os
 from rich.live import Live
 import time
+import uuid
 
 
 def check_packages():
@@ -40,9 +41,13 @@ def login_form():
         console.print("[bold cyan]Enter Your password[/bold cyan]:", end=" ")
         user_password = getpass.getpass('')
         
+        print(user_name, user_password)
+
         if user_name == 'Admin' and user_password == '123':
+            session_id = f"{user_name}-{uuid.uuid4().hex[:8]}"
             clear_consol()
-            return
+            return session_id
+
         else:
             console.print('[bold red]Not validated ,try again [/bold red]')
             exit_program()                
@@ -85,7 +90,7 @@ def get_requests():
         if request.lower() == "liveupdate" : live_update(resp)  #to view live updates one by one at time
 
         print(f"your request is {request}")
-        return True
+        return request
     except :
         console.print("[bold red]Error on request[/bold red]")
 
