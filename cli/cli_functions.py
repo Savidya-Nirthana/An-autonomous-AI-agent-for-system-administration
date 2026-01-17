@@ -89,8 +89,7 @@ def get_requests():
         resp =[ "Hello, how can I help?", "Here’s some context about your query...", "Final answer: use Rich Live to update dynamically!" ]
         if request.lower() == "liveupdate" : live_update(resp)  #to view live updates one by one at time
 
-        print(f"your request is {request}")
-        return request
+        return f"{request}"
     except :
         console.print("[bold red]Error on request[/bold red]")
 

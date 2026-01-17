@@ -8,3 +8,6 @@ Try :
 pending
 liveupdate 
 exit
+
+#use this to if your internet is blocked    
+netsh advfirewall set allprofiles firewallpolicy blockinbound,allowoutbound

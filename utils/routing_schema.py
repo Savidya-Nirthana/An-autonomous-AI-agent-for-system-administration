@@ -7,7 +7,8 @@ class RoutingDecision(BaseModel):
         "filesystem",
         "admin",
         "network",
-        "firewallandsecurity"
+        # "firewallandsecurity",
+        "security"
     ]
 
     reason: str

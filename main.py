@@ -35,7 +35,9 @@ llm = LLMClient(
 router = create_router_agent(llm)
 while True:
     prompt = get_requests()
-    if not prompt: break
+
+    if prompt == "" : continue
+    elif not prompt : break
 
     messages = load_chat_memory(session_id)
 
