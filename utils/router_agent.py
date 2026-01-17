@@ -13,8 +13,8 @@ Your job is to decide which agent should handle the task.
 
 Agents:
 - filesystem → creating files, folders, reading/writing files
-- admin → system operations, setup, configuration
-- general → anything else
+- network → basic ip address operations pinging, traceroute
+- admin → system operations, setup, configuration admin don't do ping commands
 
 Respond ONLY in the required JSON format.
 

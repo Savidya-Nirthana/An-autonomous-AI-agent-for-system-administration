@@ -6,7 +6,7 @@ class RoutingDecision(BaseModel):
     agent: Literal[
         "filesystem",
         "admin",
-        "general"
+        "network"
     ]
 
     reason: str
