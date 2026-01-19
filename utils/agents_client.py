@@ -1,8 +1,9 @@
 from typing import Literal
 from langchain.agents import create_agent
 from tools.filesystem import make_dir, create_file, change_dir, list_dir
-from tools.network import ping
-from tools.firewallandsecurity import firewall_status,view_saved_credintials_by_os,turn_on_firewall,turn_off_firewall,delay
+from tools.network import ping, traceroute, get_ip_address, show_ipconfig, get_default_gateway
+from tools.firewallandsecurity import firewall_status
+from tools.usagemonitoring import cpu_usage, memory_usage, disk_usage
 
 class AgentClient:
     def __init__(self, llm, agent_name: Literal["filesystem", "admin", "genaral"]):
@@ -26,13 +27,30 @@ class AgentClient:
             print("network agent created")
             return create_agent(
                 model=self.llm_client,
-                tools=[ping],
+                tools=[ping, traceroute, get_ip_address, show_ipconfig, get_default_gateway],
                 system_prompt="You are a helpful assistant who can perform network operations",
             )
-        elif self.agent_name == "security":
+
+        elif self.agent_name == "networkandfile":
+            print("networkandfile agent created")
+            return create_agent(
+                model=self.llm_client,
+                tools=[ping, traceroute, get_ip_address, show_ipconfig, get_default_gateway, make_dir, create_file, change_dir, list_dir],
+                system_prompt="You are a helpful assistant who can perform network operations and file operations",
+            )
+
+        elif self.agent_name == "firewallandsecurity":
             return create_agent(
                 model=self.llm_client,
                 tools=[view_saved_credintials_by_os,firewall_status,turn_on_firewall,turn_off_firewall,delay],
                 system_prompt="You are a helpful assistant who can perform security and credentials related operations",
             )
+        
+        elif self.agent_name == "usagemonitoring":
+            return create_agent(
+                model=self.llm_client,
+                tools=[cpu_usage, memory_usage, disk_usage],
+                system_prompt="You are a helpful assistant who can perform usage monitoring (cpu, memory, disk space)",
+            )
+
 
