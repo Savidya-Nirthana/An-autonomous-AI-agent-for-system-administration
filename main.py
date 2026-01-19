@@ -4,12 +4,16 @@ from utils.token_utils import token_guard
 from utils.router_agent import create_router_agent
 from utils.agents_client import AgentClient
 from utils.memory_store import save_chat_memory, load_chat_memory
+from cli.networking import show_default_gateway_ui
+from core.tool_parser import extract_tool_ui
+from core.tool_router_ui import render_ui
 
 from cli.cli_functions import (
     welcome_banner,
     login_form,
     welcome_msg,
-    get_requests
+    get_requests,
+    pending_message
 
 )
 
@@ -32,14 +36,22 @@ llm = LLMClient(
 )
 
 
-router = create_router_agent(llm)
+with pending_message("Initializing..."):
+    router = create_router_agent(llm)
+
+
 while True:
     prompt = get_requests()
-    if not prompt: break
+    
+    if prompt == "":  
+        print("Please enter a valid request")
+        continue
+    elif not prompt: break
 
     messages = load_chat_memory(session_id)
 
-    decision = router.invoke({"messages": [{"role": "user", "content": prompt}], "session_id" : session_id})
+    with pending_message("Routing..."):
+        decision = router.invoke({"messages": [{"role": "user", "content": prompt}], "session_id" : session_id})
 
     decision = decision["structured_response"]
     agent = decision.agent
@@ -62,8 +74,14 @@ while True:
         max_retries=llm.max_retries,
     )
     messages.append({"role": "user", "content": prompt})
+
     response = guarded_agent.invoke({"messages": messages, "session_id" : session_id}, config=config)
 
+
+    tool_ui = extract_tool_ui(response["messages"])
+
+    if tool_ui:
+        render_ui(tool_ui)
 
     response = response["messages"][-1].content
     print(response)

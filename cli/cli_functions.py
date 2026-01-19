@@ -40,8 +40,6 @@ def login_form():
         
         console.print("[bold cyan]Enter Your password[/bold cyan]:", end=" ")
         user_password = getpass.getpass('')
-        
-        print(user_name, user_password)
 
         if user_name == 'Admin' and user_password == '123':
             session_id = f"{user_name}-{uuid.uuid4().hex[:8]}"
@@ -64,11 +62,8 @@ def welcome_msg():
         console.print(Text("Error on welcome"))
 
 def pending_message(message=""):
-    try:
-        console = Console()
-        with console.status(f"[bold yellow]{message}[/bold yellow]", spinner="aesthetic"): time.sleep(10)
-    except:
-        console.print("[bold red]Error on pending...[/bold red]")
+    console = Console()
+    return console.status(f"[bold yellow]{message}[/bold yellow]", spinner="dots")
     
 def live_update(responses=""):
     console = Console()
@@ -89,6 +84,7 @@ def get_requests():
         resp =[ "Hello, how can I help?", "Here’s some context about your query...", "Final answer: use Rich Live to update dynamically!" ]
         if request.lower() == "liveupdate" : live_update(resp)  #to view live updates one by one at time
 
+        if request == "" : return ""
         print(f"your request is {request}")
         return request
     except :
