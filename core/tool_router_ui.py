@@ -1,6 +1,9 @@
 from cli.networking import show_default_gateway_ui, show_ip_address_ui, show_traceroute_ui
 from cli.filesystem import show_detailed_list_ui, show_simple_list_ui
 from cli.resourse_monitoring import show_cpu_basic_ui, show_cpu_full_ui
+from cli.firewallandsecurity import show_firewall_status_ui, show_view_saved_credintials_by_os_ui
+from cli.commons import normal_window
+from cli.date_time import show_last_time_sync_details_ui
 
 def render_ui(tool_data: dict) -> bool:
     for tool in tool_data:
@@ -28,7 +31,16 @@ def render_ui(tool_data: dict) -> bool:
                 show_cpu_full_ui(tool)
 
         if ui_type == "firewall_status":
-            show_firewall_status_ui(tool.get("firewall_status"))
+            show_firewall_status_ui(tool.get("result"))
+
+        if ui_type == "view_saved_credintials_by_os":
+            show_view_saved_credintials_by_os_ui(tool.get("result"))
+
+        if ui_type == "normal_window":
+            normal_window(tool.get("result"))
+
+        if ui_type == "last_sync_time":
+            show_last_time_sync_details_ui(tool.get("result"))
 
     return True
 

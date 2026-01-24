@@ -3,7 +3,7 @@ from utils.execution_log import log_execution
 import shutil
 import threading
 from rich.console import Console
-import os, sys
+import os, sys, subprocess
 from typing import Optional, Dict, Any, List
 
 @tool
@@ -16,10 +16,21 @@ def firewall_status() -> Dict[str, Any]:
         elif sys.platform in ("linux" , "darwin") : 
             command = "ufw status verbose"
         else: 
-            return "Unsupported platform"
+            return {
+                "result":"Unsupported platform",
+                "success": False,
+                "error": None,
+                "ui_type": "normal_window"
+            }
         
-        result = os.system(command)
-        return f"{result}"
+        result = subprocess.getoutput(command)
+
+        return {
+            "result" : result,
+            "success": True,
+            "error": None,
+            "ui_type": "firewall_status"
+            }
     except Exception as e:
         print(f"Error finding firewall status: {e}")
         return {
@@ -44,13 +55,30 @@ def view_saved_credintials_by_os() ->str:
                 
             command = "secret-tool search --all"  
         else: 
-            return "Unsupported platform"   
+            return {
+                "result":"Unsupported platform",
+                "success": False,
+                "error": None,
+                "ui_type": "normal_window"
+            }  
         
-        return f"{os.system(command)}"
+        result = subprocess.getoutput(command)
+        
+        result = result.strip().replace(" ","").splitlines()
+        
+        return {
+            "result":result,
+            "success": True,
+            "error": None,
+            "ui_type": "view_saved_credintials_by_os"
+            }
+        
     except Exception as e:
-        console.print(f"Error on stored username and credentials: {e}")
-        return ""
-
+        return {
+            "success": False,
+            "error": str(e),
+            "ui_type": "view_saved_credintials_by_os"
+            }
 
 @tool
 def turn_off_firewall() -> str:
@@ -61,12 +89,27 @@ def turn_off_firewall() -> str:
         elif sys.platform in ("linux", "darwin"):
             command = "ufw disable"
         else:
-            return "Unsupported platform"
-        os.system(command)
-        return "Firewall turned OFF"
+            return {
+                "result":"Unsupported platform",
+                "success": False,
+                "error": None,
+                "ui_type": "normal_window"
+            }
+        
+        result = subprocess.getoutput(command)
+        
+        return {
+            "result":result,
+            "success": True,
+            "error": None,
+            "ui_type": "turn_switch_firewall"
+        }
     except Exception as e:
-        return f"Error turning off firewall: {e}"
-
+        return {
+            "success": False,
+            "error": str(e),
+            "ui_type": "turn_switch_firewall"
+        }
 
 @tool
 def turn_on_firewall() -> str:
@@ -77,57 +120,100 @@ def turn_on_firewall() -> str:
     try:
         if sys.platform == "win32":
             # Turn firewall status ON 
-            os.system("netsh advfirewall set allprofiles state on")
+            command = "netsh advfirewall set allprofiles state on"
 
         elif sys.platform in ("linux", "darwin"):
-            os.system("ufw enable")
+            command = "ufw enable"
         else:
-            return "Unsupported platform"
+            return {
+                "result":"Unsupported platform",
+                "success": False,
+                "error": None,
+                "ui_type": "normal_window"
+            }
+        
+        result = subprocess.getoutput(command)
 
-        return (
-            f"Firewall turned ON "
-            
-        )
+        return {
+            "result":result,
+            "success": True,
+            "error": None,
+            "ui_type": "normal_window"
+        }
+
     except Exception as e:
-        return f"Error turning on firewall: {e}"
+        return {
+            "success": False,
+            "error": str(e),
+            "ui_type": "normal_window"
+        }
 
-
+@tool
 def block_internet_connection() -> str:
     """
     Turns on the firewall and blocks all inbound and outbound traffic.
     """
     try:
         if sys.platform == "win32":
-            os.system("netsh advfirewall set allprofiles state on")
-            os.system("netsh advfirewall set allprofiles firewallpolicy blockinboundalways,blockoutbound")
+            subprocess.run("netsh advfirewall set allprofiles state on")
+            subprocess.run("netsh advfirewall set allprofiles firewallpolicy blockinboundalways,blockoutbound")
         elif sys.platform in ("linux", "darwin"):
-            os.system("ufw enable")
-            os.system("ufw default deny incoming")
-            os.system("ufw default deny outgoing")
+            subprocess.run("ufw enable")
+            subprocess.run("ufw default deny incoming")
+            subprocess.run("ufw default deny outgoing")
         else:
-            return "Unsupported platform"
-        return "Internet connection blocked successfully."
+            return {
+                "result":"Unsupported platform",
+                "success": False,
+                "error": None,
+                "ui_type": "normal_window"
+            }
+        return {
+            "result":"Internet connection blocked successfully.",
+            "success": True,
+            "error": None,
+            "ui_type": "normal_window"
+        }
     except Exception as e:
-        return f"Error blocking internet: {e}"
+        return {
+            "result":"Error blocking internet connection.",
+            "success": False,
+            "error": str(e),
+            "ui_type": "normal_window"
+        }
 
-
+@tool
 def restore_internet_connection() -> str:
     """
     Restores internet access by allowing outbound traffic and blocking inbound.
     """
     try:
         if sys.platform == "win32":
-            os.system("netsh advfirewall set allprofiles state on")
-            os.system("netsh advfirewall set allprofiles firewallpolicy blockinbound,allowoutbound")
+            subprocess.run("netsh advfirewall set allprofiles state on")
+            subprocess.run("netsh advfirewall set allprofiles firewallpolicy blockinbound,allowoutbound")
         elif sys.platform in ("linux", "darwin"):
-            os.system("ufw default allow outgoing")
-            os.system("ufw default deny incoming")
+            subprocess.run("ufw default allow outgoing")
+            subprocess.run("ufw default deny incoming")
         else:
-            return "Unsupported platform"
-        return "Internet connection restored to default settings."
+            return {
+                "result":"Unsupported platform",
+                "success": False,
+                "error": None,
+                "ui_type": "normal_window"
+            }
+        return {
+            "result":"Internet connection restored to default settings.",
+            "success": True,
+            "error": None,
+            "ui_type": "normal_window"
+        }
     except Exception as e:
-        return f"Error restoring internet: {e}"
-
+        return {
+            "result":"Error restoring internet connection.",
+            "success": False,
+            "error": str(e),
+            "ui_type": "normal_window"
+        }
 
 
 
@@ -142,7 +228,17 @@ def delay(duration:int = 10) -> str:
             print(f"Finished waiting {duration} seconds") 
         
         threading.Timer(duration, done).start()        
-        return f"Delayed for {duration} seconds"
+        return {
+            "result":f"Delayed for {duration} seconds",
+            "success": True,
+            "error": None,
+            "ui_type": "normal_window"
+        }
 
     except Exception as e:
-        return f"Error in delaying: {e}"
+        return {
+            "result":f"Error in delaying: {e}",
+            "success": False,
+            "error": str(e),
+            "ui_type": "normal_window"
+        }

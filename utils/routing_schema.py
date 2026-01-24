@@ -9,7 +9,8 @@ class RoutingDecision(BaseModel):
         "network",
         "networkandfile",
         "security",
-        "usagemonitoring"
+        "usagemonitoring",
+        "datetime"
     ]
 
     reason: str

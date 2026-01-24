@@ -4,6 +4,7 @@ from tools.filesystem import make_dir, create_file, change_dir, list_dir
 from tools.network import ping, traceroute, get_ip_address, show_ipconfig, get_default_gateway
 from tools.firewallandsecurity import firewall_status, restore_internet_connection, block_internet_connection, turn_on_firewall, turn_off_firewall, view_saved_credintials_by_os, delay
 from tools.usagemonitoring import cpu_usage, memory_usage, disk_usage
+from tools.datetime import get_last_time_sync_details, sync_time
 
 class AgentClient:
     def __init__(self, llm, agent_name: Literal["filesystem", "admin", "network", "networkandfile", "security", "usagemonitoring"]):
@@ -60,5 +61,11 @@ class AgentClient:
                 tools=[cpu_usage, memory_usage, disk_usage],
                 system_prompt="You are a helpful assistant who can perform usage monitoring (cpu, memory, disk space)",
             )
-
+            
+        elif self.agent_name == "datetime":
+            return create_agent(
+                model=self.llm_client,
+                tools=[get_last_time_sync_details, sync_time],
+                system_prompt="You are a helpful assistant who can perform datetime operations (get last time sync details, sync time)",
+            )
 
