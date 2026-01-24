@@ -12,3 +12,4 @@ def extract_tool_ui(messages) -> Optional[Dict[str, Any]]:
             except json.JSONDecodeError:
                 pass
     return tool_message
+    

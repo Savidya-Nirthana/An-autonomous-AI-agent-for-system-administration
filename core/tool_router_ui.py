@@ -27,5 +27,9 @@ def render_ui(tool_data: dict) -> bool:
             else:
                 show_cpu_full_ui(tool)
 
+        if ui_type == "firewall_status":
+            show_firewall_status_ui(tool.get("firewall_status"))
+
     return True
+
 

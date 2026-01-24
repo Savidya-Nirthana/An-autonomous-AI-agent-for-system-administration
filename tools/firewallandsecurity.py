@@ -4,9 +4,10 @@ import shutil
 import threading
 from rich.console import Console
 import os, sys
+from typing import Optional, Dict, Any, List
 
 @tool
-def firewall_status() -> str:
+def firewall_status() -> Dict[str, Any]:
     """Show firewall status"""
     """Do not use previous results to run this tool again"""
     try:
@@ -16,11 +17,16 @@ def firewall_status() -> str:
             command = "ufw status verbose"
         else: 
             return "Unsupported platform"
-           
-        return f"{os.system(command)}"
+        
+        result = os.system(command)
+        return f"{result}"
     except Exception as e:
         print(f"Error finding firewall status: {e}")
-        return ""
+        return {
+            "success": False,
+            "error": str(e),
+            "ui_type": "firewall_status"
+        }
         
 @tool
 def view_saved_credintials_by_os() ->str:
@@ -63,39 +69,15 @@ def turn_off_firewall() -> str:
 
 
 @tool
-def turn_on_firewall(
-    inbound: str = "blockinbound",
-    outbound: str = "allowoutbound",
-    remotemanagement: str = "disable",
-    log_dropped: str = "disable",
-    log_allowed: str = "disable",
-) -> str:
-    """
-    Turn on firewall for all profiles with optional parameters:
-    - inbound: blockinbound | blockinboundalways | allowinbound | notconfigured
-    - outbound: allowoutbound | blockoutbound | notconfigured
-    - remotemanagement: enable | disable | notconfigured
-    - log_dropped: enable | disable | notconfigured
-    - log_allowed: enable | disable | notconfigured
-    """
+def turn_on_firewall() -> str:
+
+    """Turn on firewall for all profiles"""
     """Do not use previous results to run this tool again"""
-    """Blocking the internet connection = blocking inbound and outbound connections"""
-    """when blocking the internet , inbound outbound connections, give the code that restore it too"""
 
     try:
         if sys.platform == "win32":
             # Turn firewall status ON 
             os.system("netsh advfirewall set allprofiles state on")
-
-            # Apply firewall policy
-            os.system(f"netsh advfirewall set allprofiles firewallpolicy {inbound},{outbound}")
-
-            # Apply settings
-            os.system(f"netsh advfirewall set allprofiles settings remotemanagement {remotemanagement}")
-
-            # Apply logging
-            os.system(f"netsh advfirewall set allprofiles logging droppedconnections {log_dropped}")
-            os.system(f"netsh advfirewall set allprofiles logging allowedconnections {log_allowed}")
 
         elif sys.platform in ("linux", "darwin"):
             os.system("ufw enable")
@@ -103,11 +85,52 @@ def turn_on_firewall(
             return "Unsupported platform"
 
         return (
-            f"Firewall turned ON with policy inbound={inbound}, outbound={outbound}, "
-            f"remotemanagement={remotemanagement}, log_dropped={log_dropped}, log_allowed={log_allowed}"
+            f"Firewall turned ON "
+            
         )
     except Exception as e:
         return f"Error turning on firewall: {e}"
+
+
+def block_internet_connection() -> str:
+    """
+    Turns on the firewall and blocks all inbound and outbound traffic.
+    """
+    try:
+        if sys.platform == "win32":
+            os.system("netsh advfirewall set allprofiles state on")
+            os.system("netsh advfirewall set allprofiles firewallpolicy blockinboundalways,blockoutbound")
+        elif sys.platform in ("linux", "darwin"):
+            os.system("ufw enable")
+            os.system("ufw default deny incoming")
+            os.system("ufw default deny outgoing")
+        else:
+            return "Unsupported platform"
+        return "Internet connection blocked successfully."
+    except Exception as e:
+        return f"Error blocking internet: {e}"
+
+
+def restore_internet_connection() -> str:
+    """
+    Restores internet access by allowing outbound traffic and blocking inbound.
+    """
+    try:
+        if sys.platform == "win32":
+            os.system("netsh advfirewall set allprofiles state on")
+            os.system("netsh advfirewall set allprofiles firewallpolicy blockinbound,allowoutbound")
+        elif sys.platform in ("linux", "darwin"):
+            os.system("ufw default allow outgoing")
+            os.system("ufw default deny incoming")
+        else:
+            return "Unsupported platform"
+        return "Internet connection restored to default settings."
+    except Exception as e:
+        return f"Error restoring internet: {e}"
+
+
+
+
 
 @tool 
 def delay(duration:int = 10) -> str:

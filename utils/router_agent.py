@@ -15,7 +15,7 @@ Agents:
 - filesystem → creating files, folders, reading/writing files
 - network → basic ip address operations pinging, traceroute
 - admin → system operations, setup, configuration admin don't do ping commands
-- firewallandsecurity → firewall and security operations
+- security → firewall and security operations both
 - networkandfile → network and file operations both
 - usagemonitoring → monitoring system usage cpu, memory, disk space
 
