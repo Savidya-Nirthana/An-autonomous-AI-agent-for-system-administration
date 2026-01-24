@@ -4,6 +4,7 @@ import platform
 import stat
 from typing import Optional, Dict, Any, List
 import sys, subprocess
+from cli.request_admin_access import run_as_admin
 
 
 @tool

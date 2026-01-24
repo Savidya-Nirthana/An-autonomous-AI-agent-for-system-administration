@@ -7,6 +7,8 @@ from utils.memory_store import save_chat_memory, load_chat_memory
 from cli.networking import show_default_gateway_ui
 from core.tool_parser import extract_tool_ui
 from core.tool_router_ui import render_ui
+from cli.request_admin_access import run_as_admin
+import platform
 
 from cli.cli_functions import (
     welcome_banner,
@@ -16,6 +18,9 @@ from cli.cli_functions import (
     pending_message
 
 )
+
+if platform.system() == "Windows":
+    run_as_admin()
 
 welcome_banner()
 session_id = login_form()
