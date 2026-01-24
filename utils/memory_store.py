@@ -1,27 +1,17 @@
 from pathlib import Path
 from typing import List, Dict
 import json
+from database.vector_db import QdrantStorage
 
 
-BASE_DIR = Path(__file__).resolve().parent.parent
 
+def load_chat_memory(session_id: str, query: str)-> List[Dict]:
+    
+    vector_db = QdrantStorage()
+    context = vector_db.search(session_id, query)
 
-MEMORY_DIR = BASE_DIR / "memory"
-if not MEMORY_DIR.exists():
-    MEMORY_DIR.mkdir(parents=True, exist_ok=True)
+    return context
 
-
-def load_chat_memory(session_id: str)-> List[Dict]:
-    file = MEMORY_DIR / f"{session_id}.json"
-    if not file.exists():
-        return []
-    with open(file, "r") as f:
-        return json.load(f)
-
-
-def save_chat_memory(session_id: str, messages: List[Dict]):
-    file = MEMORY_DIR / f"{session_id}.json"
-    with open(file, "w") as f:
-        json.dump(messages, f)
-
-
+def save_chat_memory(session_id: str, user_message: str, assistant_message: str):
+    vector_db = QdrantStorage()
+    vector_db.upsert(session_id, user_message, assistant_message)

@@ -9,6 +9,9 @@ from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn
 from rich.panel import Panel
 from rich.table import Table
 import socket
+import shutil
+import json
+from utils.execution_log import log_execution
 
 console = Console()
 
@@ -22,7 +25,9 @@ def get_ip_address() -> Dict[str, Any]:
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         s.connect(("8.8.8.8", 80))
         ip = s.getsockname()[0]
+        
         s.close()
+        
         return {
             "success": True,
             "ip_address": ip,
@@ -46,7 +51,6 @@ def ping(host: str, count: int = 4, timeout: int = 3) -> Dict[str, Any]:
         count (int): Number of ping packets
         timeout (int): Timeout per packet (seconds)
 
-    please don't show the result from previous ping command. always show the result of current ping command.
     """
 
     system = platform.system().lower()
@@ -354,3 +358,77 @@ def get_default_gateway() -> Dict[str, Any]:
             "error": str(e),
             "default_gateway": None
         }
+
+
+@tool
+def tcp_port_check(host: str, port: int, timeout: int = 5, as_text: bool = False) -> dict | str:
+    """
+    Cross-platform network check (TCP port).
+
+    Args:
+        host (str): Hostname or IP
+        port (int): TCP port to test
+        timeout (int): Timeout in seconds
+        as_text (bool): Return human-readable summary
+
+    please don't return the result from previous exections always call the tool again to get the latest result
+
+    Returns:
+        dict or str: Result
+
+    """
+
+    system = platform.system().lower()
+
+    result = {
+        "host" : host,
+        "port" : port,
+        "timeout" : timeout,
+        "success" : False,
+        "error" : None,
+        "ui_type" : "tcp_port_check"
+    }
+
+
+    if system == "windows" and shutil.which("powershell"):
+        ps_cmd = f"""
+        try {{
+            $r = Test-NetConnection -ComputerName "{host}" -Port {port} -InformationLevel Detailed
+            $r.TcpTestSucceeded
+        }} catch {{
+            $false
+        }}
+        """
+        try:
+            completed = subprocess.run(
+                ["powershell", "-NoProfile", "-Command", ps_cmd],
+                capture_output=True, text=True, timeout=timeout
+            )
+            output = completed.stdout.strip().lower()
+            result["tcp_success"] = output == "true"
+        except Exception:
+            result["tcp_success"] = False
+    
+    else:
+        if shutil.which("nc"):
+            try:
+                completed = subprocess.run(
+                    ["nc", "-zv", "-w", str(timeout), host, str(port)],
+                    capture_output=True, text=True
+                )
+                result["tcp_success"] = completed.returncode == 0
+            except Exception:
+                result["tcp_success"] = False
+        else:
+            result["tcp_success"] = None 
+
+    result["success"] = result["tcp_success"]
+
+    if as_text:
+        return f"✅ Port {port} is open on {host}" if result["tcp_success"] else f"❌ Port {port} is closed on {host}"
+
+    return result
+
+        
+
+    

@@ -4,11 +4,17 @@ import os
 import platform
 import stat
 from typing import Dict, Any
+from pathlib import Path
+from langchain_core.runnables import RunnableConfig
 
 if platform.system().lower() != "windows":
     import pwd
     import grp
 
+
+WORKING_STATE = {
+    "cwd": Path.cwd()
+}
 
 
 @tool
@@ -45,14 +51,55 @@ def create_file(file_name: str, content: str) -> str:
 
 
 @tool
-def change_dir(dir_name: str) -> str:
-    """ change the current working directory """
+def change_dir(path: str)-> str:
+    """ 
+    Change the working directory (cross-platform)
+    Support absolute, relateve, ~, Windows & unix paths.
+    Persists across agent tools
+    """
+
     try:
-        os.chdir(dir_name)
-        print("Directory changed successfully")
-    except FileNotFoundError:
-        print(f"Directory {dir_name} not found")
-    return f"changed directory to {dir_name}"
+        resolved_path = Path(path).expanduser()
+
+        if not resolved_path.is_absolute():
+            resolved_path = (WORKING_STATE["cwd"] / resolved_path).resolve()
+
+        if not resolved_path.exists():
+            return {
+                "path" : f"❌ Directory not found: {resolved_path}",
+                "success" : False,
+                "ui_type" : "change_dir"
+                }
+
+        if not resolved_path.is_dir():
+            return {
+                "path" : f"❌ Path is not a directory: {resolved_path}",
+                "success" : False,
+                "ui_type" : "change_dir"
+                }
+
+        os.chdir(resolved_path)
+        WORKING_STATE["cwd"] = resolved_path
+
+        return {
+            "path" : f"✅ Current directory: {resolved_path}",
+            "success" : True,
+            "ui_type" : "change_dir"
+            }
+
+    except PermissionError:
+        return {
+            "path" : f"❌ Permission denied: {resolved_path}",
+            "success" : False,
+            "ui_type" : "change_dir"
+            }
+    except Exception as e:
+        return {
+            "path" : f"❌ Error: {str(e)}",
+            "success" : False,
+            "ui_type" : "change_dir"
+            }
+
 
 @tool
 def list_dir(path: str = ".", view: str = "simple") -> Dict[str, Any]:
@@ -113,3 +160,25 @@ def list_dir(path: str = ".", view: str = "simple") -> Dict[str, Any]:
             "error": str(e),
             "ui_type": "list_dir"
         }
+
+
+@tool
+def pending_manage(question: str, config: RunnableConfig):
+    """
+    Call this tool when you need more information from the user.
+    
+    args:
+        question (str): The question to ask the user (e.g., "What should I name the folder?")
+        session_id (str): The session id of the user
+    """
+    session_id = config["configurable"].get("session_id")
+    print("pending_manage tool called")
+    # print(question)
+    return {
+        "success": True,
+        "ui_type": "pending_manage",
+        "pending" : True,
+        "session_id" : session_id,
+        "question" : question
+    }
+    

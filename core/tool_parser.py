@@ -11,4 +11,5 @@ def extract_tool_ui(messages) -> Optional[Dict[str, Any]]:
                 tool_message.append(json.loads(msg.content))
             except json.JSONDecodeError:
                 pass
+            # print(tool_message)
     return tool_message

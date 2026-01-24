@@ -40,6 +40,8 @@ with pending_message("Initializing..."):
     router = create_router_agent(llm)
 
 
+set_pending = False
+tool_ui = {}
 while True:
     prompt = get_requests()
     
@@ -48,10 +50,30 @@ while True:
         continue
     elif not prompt: break
 
-    messages = load_chat_memory(session_id)
-
+    config = RunnableConfig(
+        max_retries=llm.max_retries,
+        configurable={
+            "session_id": session_id,
+        }
+    )
     with pending_message("Routing..."):
-        decision = router.invoke({"messages": [{"role": "user", "content": prompt}], "session_id" : session_id})
+        if set_pending:
+            pending_prompt = f"""
+                CONTEXT: You previously paused to ask the user a question.
+                YOUR QUESTION: "{tool_ui[0].get("question", "")}"
+                USER ANSWER: "{prompt}"
+
+                INSTRUCTION: Proceed with the task using this new information.
+            """
+            decision = router.invoke({"messages": [{"role": "user", "content": pending_prompt}]})
+        else:
+            decision = router.invoke({"messages": [{"role": "user", "content": prompt}]}, config=config)
+    
+
+
+    with pending_message("Loading Memory..."):
+        messages = load_chat_memory(session_id, prompt)
+
 
     decision = decision["structured_response"]
     agent = decision.agent
@@ -72,21 +94,40 @@ while True:
 
     config = RunnableConfig(
         max_retries=llm.max_retries,
+        configurable={
+        "session_id": session_id,
+        }
     )
-    messages.append({"role": "user", "content": prompt})
 
-    response = guarded_agent.invoke({"messages": messages, "session_id" : session_id}, config=config)
+    if not messages:
+        messages = [{"role": "user", "content": prompt}]
+    else:
+        messages.append({"role": "user", "content": prompt})    
+    
+    # print(messages)
+    response = guarded_agent.invoke({"messages": messages}, config=config)
 
-
+    # print(response)
     tool_ui = extract_tool_ui(response["messages"])
 
     if tool_ui:
         render_ui(tool_ui)
 
+    # print(tool_ui)
+    if isinstance(tool_ui, list) and tool_ui:
+        if tool_ui[0].get("pending", False):
+            set_pending = True
+        else:
+            set_pending = False
+    else:
+        set_pending = False
+
     response = response["messages"][-1].content
     print(response)
     messages.append({"role": "assistant", "content": response})
-    save_chat_memory(session_id, messages)
+    user_message = prompt
+    assistant_message = response
+    save_chat_memory(session_id, user_message, assistant_message)
 
 
 
