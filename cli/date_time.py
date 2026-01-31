@@ -7,10 +7,13 @@ from rich.table import Table
 
 def show_last_time_sync_details_ui(content):
     # print(type(content))
+    print("\n\n came to this part\n\n")
+
     content = content.get("result")
-    print(result)
+    
+    print(f"result -->{result}")
     print("-----------")
-    print(content)
+    print(f"content -->{content}")
     console.print(Panel.fit(Align.center(content), title="Last Time Sync Details"))
     # table = Table(title="Last Time Sync Details")
 

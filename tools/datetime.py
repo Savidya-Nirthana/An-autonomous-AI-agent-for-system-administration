@@ -10,6 +10,7 @@ from cli.request_admin_access import run_as_admin
 @tool
 def get_last_time_sync_details() -> str: 
     """ get the last time sync details """
+    """ if time is not sync recently or correctly this can cause unable to access some web sites like google, facebook and etc.."""
     try:
         os = platform.system().lower()
 
@@ -21,7 +22,6 @@ def get_last_time_sync_details() -> str:
             raise ValueError(f"Unsupported OS: {os}")
 
         result = subprocess.run(cmd, capture_output=True, text=True)
-
         return {
             "result" : result,
             "success": True,

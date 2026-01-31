@@ -28,7 +28,7 @@ session_id = login_form()
 if not session_id:
     exit()
 
-
+welcome_banner()
 welcome_msg()
 
 llm = LLMClient(
@@ -89,7 +89,8 @@ while True:
         render_ui(tool_ui)
 
     response = response["messages"][-1].content
-    print(response)
+    # print(response)
+    print(f"final response --->{response}")
     messages.append({"role": "assistant", "content": response})
     save_chat_memory(session_id, messages)
 
