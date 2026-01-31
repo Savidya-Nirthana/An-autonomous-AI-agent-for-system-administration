@@ -19,8 +19,8 @@ from cli.cli_functions import (
 
 )
 
-if platform.system() == "Windows":
-    run_as_admin()
+# if platform.system() == "Windows":
+#     run_as_admin()
 
 welcome_banner()
 session_id = login_form()
@@ -33,7 +33,7 @@ welcome_msg()
 
 llm = LLMClient(
     provider="google",
-    model="gemini-2.0-flash-exp",
+    model="gemini-2.0-flash",
     max_retries=3,
     backoff_base=1.2,
     backoff_jitter=0.2,
