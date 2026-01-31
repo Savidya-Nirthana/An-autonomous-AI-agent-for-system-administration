@@ -35,7 +35,7 @@ def send_files(ip_address: List[str], source_local: str, remote_dest: str, user:
             
         except Exception as e:
             if attempt < max_retries:
-                return f"[bold red]Timeout for {ip_address}[/bold red]" # Wait before trying again
+                return f"[bold red]Timeout for {ip_address}[/bold red]" 
             
 
     with ThreadPoolExecutor(max_workers=5) as executor:
