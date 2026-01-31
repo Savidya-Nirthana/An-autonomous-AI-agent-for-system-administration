@@ -20,6 +20,7 @@ Agents:
 - networkandfile → network and file operations both
 - usagemonitoring → monitoring system usage cpu, memory, disk space
 - filesharing → file sharing operations in same computer or different computer and computers
+- routing → routing operations pathping
 
 Respond ONLY in the required JSON format.
 

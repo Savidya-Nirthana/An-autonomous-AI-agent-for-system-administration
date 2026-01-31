@@ -11,7 +11,8 @@ class RoutingDecision(BaseModel):
         "security",
         "usagemonitoring",
         "datetime",
-        "filesharing"
+        "filesharing",
+        "routing"
     ]
 
     reason: str
