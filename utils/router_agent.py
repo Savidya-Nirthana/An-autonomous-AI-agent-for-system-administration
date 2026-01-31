@@ -19,6 +19,7 @@ Agents:
 - datetime → date time related operations both and credentials on devices
 - networkandfile → network and file operations both
 - usagemonitoring → monitoring system usage cpu, memory, disk space
+- filesharing → file sharing operations in same computer or different computer and computers
 
 Respond ONLY in the required JSON format.
 

@@ -4,6 +4,8 @@ from cli.resourse_monitoring import show_cpu_basic_ui, show_cpu_full_ui
 from cli.firewallandsecurity import show_firewall_status_ui, show_view_saved_credintials_by_os_ui
 from cli.commons import normal_window
 from cli.date_time import show_last_time_sync_details_ui
+from cli.filesharing import show_send_files_ui
+
 
 def render_ui(tool_data: dict) -> bool:
     for tool in tool_data:
@@ -41,6 +43,9 @@ def render_ui(tool_data: dict) -> bool:
 
         if ui_type == "last_sync_time":
             show_last_time_sync_details_ui(tool.get("result"))
+        
+        if ui_type == "send_files":
+            show_send_files_ui(tool.get("result"))
 
     return True
 

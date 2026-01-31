@@ -5,6 +5,8 @@ from tools.network import ping, traceroute, get_ip_address, show_ipconfig, get_d
 from tools.firewallandsecurity import firewall_status, restore_internet_connection, block_internet_connection, turn_on_firewall, turn_off_firewall, view_saved_credintials_by_os, delay
 from tools.usagemonitoring import cpu_usage, memory_usage, disk_usage
 from tools.datetime import get_last_time_sync_details, sync_time
+from tools.filesharing import send_files
+
 
 class AgentClient:
     def __init__(self, llm, agent_name: Literal["filesystem", "admin", "network", "networkandfile", "security", "usagemonitoring"]):
@@ -67,5 +69,11 @@ class AgentClient:
                 model=self.llm_client,
                 tools=[get_last_time_sync_details, sync_time],
                 system_prompt="You are a helpful assistant who can perform datetime operations (get last time sync details, sync time)",
+            )
+        elif self.agent_name == "filesharing":
+            return create_agent(
+                model=self.llm_client,
+                tools=[send_files],
+                system_prompt="You are a helpful assistant who can perform file sharing operations within same device and accross the devices on same network (send file)",
             )
 

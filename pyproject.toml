@@ -17,4 +17,6 @@ dependencies = [
     "uuid6>=2025.0.1",
     "langchain-groq",
     "psutil>=7.2.1",
+    "paramiko>=4.0.0",
+    "scp>=0.15.0",
 ]
