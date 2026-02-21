@@ -7,6 +7,13 @@ from tools.usagemonitoring import cpu_usage, memory_usage, disk_usage
 from tools.datetime import get_last_time_sync_details, sync_time
 from tools.filesharing import send_files
 from tools.security import full_route
+from tools.power import shutdown, restart
+from tools.hardwaremonitoring import viewCPUfantemp,viewDriveHealth,viewHardwareSummary,viewUSBDevices,viewPCIInfomation
+from tools.systemperformance import viewCPUUtilization
+from tools.usermanagement import createNewUser,changeUserPassword,addUsersToGroup,disableAccount,enableAccount
+from tools.systemupdates import updatePackages
+
+
 
 
 class AgentClient:

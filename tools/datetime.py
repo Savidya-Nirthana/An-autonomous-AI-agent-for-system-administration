@@ -1,7 +1,7 @@
 from langchain.tools import tool
 from utils.execution_log import log_execution
 import platform
-import stat
+# import stat
 from typing import Optional, Dict, Any, List
 import sys, subprocess
 from cli.request_admin_access import run_as_admin
@@ -58,4 +58,25 @@ def sync_time() -> str:
             "success": False,
             "error": str(e),
             "ui_type": "normal_window"
+        }
+
+@tool
+def viewUPTime() -> str:
+    ''' Show how long the system has been running pretty printed'''
+    os = checkOS()
+    try:
+        if 'linux' | 'darvin':
+            cmd = ['uptime'] 
+    
+        response = subprocess.ren(cmd, capture_output=True, text=true)
+        return {
+            'sucess':True,
+            'result':response,
+            'ui_type':'normal_window'
+        }
+    except exception as e:
+        return {
+            'sucess':False,
+            'error':str(e),
+            'ui_type':'Normal_window'
         }

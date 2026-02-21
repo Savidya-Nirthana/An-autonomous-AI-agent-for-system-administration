@@ -21,6 +21,11 @@ Agents:
 - usagemonitoring → monitoring system usage cpu, memory, disk space
 - filesharing → file sharing operations in same computer or different computer and computers
 - routing → routing operations pathping
+- power → device power related like restart, shutdown operations 
+- hardwaremonitoring → monitor hardware details lilke temerature , health, connected devices
+- systemperformance → CPU performance detatils
+- usermanagement → add change update user account related operations
+- systemupdates → update system applications and system
 
 Respond ONLY in the required JSON format.
 

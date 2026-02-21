@@ -12,7 +12,8 @@ class RoutingDecision(BaseModel):
         "usagemonitoring",
         "datetime",
         "filesharing",
-        "routing"
+        "routing",
+        "power","hardwaremonitoring","systemperformance","usermanagement","systemupdates"
     ]
 
     reason: str
