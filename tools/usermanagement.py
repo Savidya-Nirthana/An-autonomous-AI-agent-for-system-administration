@@ -1,6 +1,5 @@
 from langchain.tools import tool
 import subprocess
-# from cli.request_admin_access import run_as_admin
 from typing import Dict, List
 from cli.checkOS import checkOS
 
@@ -15,7 +14,7 @@ def createNewUser(names:List = 'user', password :str = "") -> Dict :
         if os == 'windows':
             cmd = ['net', 'user'].extend(names).extend([ password, '/add'])
         elif os == 'linux' | os == 'darvin' :
-            cmd = ['useradd','-m'].extend(names)
+            cmd = ['sudo', 'useradd','-m'].extend(names).extend(['-p', password ])
 
         response = subprocess.run(cmd, capture_output=True, text=True)
 
@@ -57,6 +56,34 @@ def changeUserPassword(name:str = 'user', password :str = "") -> Dict :
             'error':str(e),
             'ui_type':'Normal_window'
         }
+
+#neet to check this with correct commands
+@tool
+def createGroup(group:str) -> Dict :
+    '''
+        create user groups
+    '''
+    try:
+        os = checkOS()
+        if os == 'windows':
+            cmd = [] #no direct command , commands need to be added
+        elif os == 'linux' | os == 'darvin' :
+            cmd = ['sudo', 'groupadd ', group]
+
+        response = subprocess.run(cmd, capture_output=True, text=True)
+        
+        return {
+            'sucess':False,
+            'result':response,
+            'ui_type':'Normal_window'
+        }
+    except Exception as e:
+        return {
+            'sucess':False,
+            'error':str(e),
+            'ui_type':'Normal_window'
+        }
+
 
 #neet to check wheter the given group was exist or not
 @tool
@@ -130,5 +157,30 @@ def enableAccount(users:List) -> Dict:
             'ui_type':'Normal_window'
         }
 
+@tool
+def deleteUser(user:str) -> Dict :
+    '''
+        create user groups
+    '''
+    try:
+        os = checkOS()
+        if os == 'windows':
+            cmd = ['Remove-LocalUser', '-Name', user] #powershell
+        elif os == 'linux' | os == 'darvin' :
+            cmd = ['sudo', 'userdel', '-r', group]
 
-#[createNewUser,changeUserPassword,addUsersToGroup,disableAccount,enableAccount]
+        response = subprocess.run(cmd, capture_output=True, text=True)
+        
+        return {
+            'sucess':False,
+            'result':response,
+            'ui_type':'Normal_window'
+        }
+    except Exception as e:
+        return {
+            'sucess':False,
+            'error':str(e),
+            'ui_type':'Normal_window'
+        }
+
+#[createNewUser,changeUserPassword,addUsersToGroup,disableAccount,enableAccount ,deleteUser,createGroup]

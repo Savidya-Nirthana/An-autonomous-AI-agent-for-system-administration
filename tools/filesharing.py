@@ -7,13 +7,16 @@ import time
 
 @tool
 def send_files(ip_address: List[str], source_local: str, remote_dest: str, user: str, pwd: str):
-    """Send a file to a remote computer or multiple computers """
-    """can send ranges of ip addresses then take the range and send files to all of them"""
-    """Send file to different location of same computer  """
-    """Do not use previous results to run this tool again"""
-    """Send a files to a multiple remote computers"""
-    """This will send files faster by using multithreading"""
-    """Manages the multithreading across all IPs."""
+    """
+        Send a file to a remote computer or multiple computers.
+        can send ranges of ip addresses then take the range and send files to all of the.
+        Send file to different location of same computer .
+        Do not use previous results to run this tool agai.
+        Send a files to a multiple remote computer.
+        This will send files faster by using multithreadin.
+        Manages the multithreading across all IPs.
+    """
+
     result_list = []
     def single_file_transfer(ip_address, source_local, remote_dest, user, pwd):
         try:

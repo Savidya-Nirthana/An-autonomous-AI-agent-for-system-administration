@@ -6,6 +6,7 @@ from rich.console import Console
 import os, sys, subprocess
 from typing import Optional, Dict, Any, List
 
+
 @tool
 def firewall_status() -> Dict[str, Any]:
     """Show firewall status"""

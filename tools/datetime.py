@@ -1,10 +1,10 @@
 from langchain.tools import tool
 from utils.execution_log import log_execution
-import platform
 # import stat
 from typing import Optional, Dict, Any, List
 import sys, subprocess
 from cli.request_admin_access import run_as_admin
+from cli.checkOS import checkOS
 
 
 @tool
@@ -12,7 +12,7 @@ def get_last_time_sync_details() -> str:
     """ get the last time sync details """
     """ if time is not sync recently or correctly this can cause unable to access some web sites like google, facebook and etc.."""
     try:
-        os = platform.system().lower()
+        os = checkOS()
 
         if os == "windows":
             cmd = ["w32tm", "/query", "/status"]
@@ -38,7 +38,7 @@ def get_last_time_sync_details() -> str:
 def sync_time() -> str: 
     """ sync the time with correct time"""
     try:
-        os = platform.system().lower()
+        os = checkOS()
 
         if os == "windows":
             cmd = ["w32tm", "/resync"]

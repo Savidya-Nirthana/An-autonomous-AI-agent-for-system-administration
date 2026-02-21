@@ -81,7 +81,6 @@ def memory_usage():
             "ui_type": "memory_usage"
         }
 
-
 @tool
 def disk_usage():
     """
