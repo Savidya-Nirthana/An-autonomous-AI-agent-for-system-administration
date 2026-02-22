@@ -11,10 +11,10 @@ load_dotenv()
 if not os.getenv("GOOGLE_API_KEY"):
     os.environ["GOOGLE_API_KEY"] = os.getenv("GOOGLE_API_KEY")
 class QdrantStorage:
-    def __init__(self, url: str = "http://localhost:6333", collection: str = "chatops" , dim=768):
+    def __init__(self, url: str = "http://localhost:6333", collection: str = "chatops" , dim=3072):
         self.client = QdrantClient(url=url, timeout=30)
         self.collection = collection
-        self.embeddings = GoogleGenerativeAIEmbeddings(model="text-embedding-004")
+        self.embeddings = GoogleGenerativeAIEmbeddings(model="models/gemini-embedding-001")
 
         if not self.client.collection_exists(self.collection):
             self.client.create_collection(

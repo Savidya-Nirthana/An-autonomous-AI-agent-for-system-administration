@@ -28,7 +28,7 @@ welcome_msg()
 
 llm = LLMClient(
     provider="google",
-    model="gemini-2.0-flash-exp",
+    model="gemini-2.5-flash",
     max_retries=3,
     backoff_base=1.2,
     backoff_jitter=0.2,
@@ -43,7 +43,7 @@ with pending_message("Initializing..."):
 set_pending = False
 tool_ui = {}
 while True:
-    prompt = get_requests()
+    prompt = get_requests(session_id)
     
     if prompt == "":  
         print("Please enter a valid request")

@@ -13,7 +13,7 @@ from rich.live import Live
 import time
 import uuid
 
-
+user_name=""
 def check_packages():
     packages = ["rich" ,"pyfiglet","getpass","sys","subprocess","importlib","os", "langchain"]
     for package in packages:
@@ -33,6 +33,7 @@ def welcome_banner():
         
 def login_form():
     try:
+        global user_name
         console = Console()
         
         console.print('[bold cyan]Enter Your username (Admin)[/bold cyan]:' , end=" ")
@@ -73,10 +74,11 @@ def live_update(responses=""):
             time.sleep(2)
         live.update("")
 
-def get_requests():
+def get_requests(session_id: str):
     try:
         console = Console()
-        console.print('[bold green]Request >>>[/bold green]' ,end=" ")
+        console.print(f'[bold green][{user_name}@{session_id}]-[{os.getcwd()}][/bold green]\n' ,end="")
+        console.print("[bold green]$[/bold green]", end=" ")
         request = console.input()
         
         if request.lower() == "exit" : return False             #end the program
