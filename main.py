@@ -1,12 +1,12 @@
-from utils.llm_client import LLMClient
 from langchain_core.runnables import RunnableConfig
 from utils.token_utils import token_guard
-from utils.router_agent import create_router_agent
-from utils.agents_client import AgentClient
+from src.agents.router_agent import create_router_agent
+from src.agents import AgentClient
 from utils.memory_store import save_chat_memory, load_chat_memory
 from cli.networking import show_default_gateway_ui
 from core.tool_parser import extract_tool_ui
 from core.tool_router_ui import render_ui
+from src.infrastructure.llm import get_router_llm, get_chat_llm
 
 from cli.cli_functions import (
     welcome_banner,
@@ -26,18 +26,13 @@ if not session_id:
 
 welcome_msg()
 
-llm = LLMClient(
-    provider="google",
-    model="gemini-2.5-flash",
-    max_retries=3,
-    backoff_base=1.2,
-    backoff_jitter=0.2,
-    hard_prompt_cap=1024
-)
 
+
+router_llm = get_router_llm()
+chat_llm = get_chat_llm()
 
 with pending_message("Initializing..."):
-    router = create_router_agent(llm)
+    router = create_router_agent(router_llm)
 
 
 set_pending = False
@@ -50,12 +45,6 @@ while True:
         continue
     elif not prompt: break
 
-    config = RunnableConfig(
-        max_retries=llm.max_retries,
-        configurable={
-            "session_id": session_id,
-        }
-    )
     with pending_message("Routing..."):
         if set_pending:
             pending_prompt = f"""
@@ -67,7 +56,7 @@ while True:
             """
             decision = router.invoke({"messages": [{"role": "user", "content": pending_prompt}]})
         else:
-            decision = router.invoke({"messages": [{"role": "user", "content": prompt}]}, config=config)
+            decision = router.invoke({ "input": prompt})
     
 
 
@@ -75,25 +64,24 @@ while True:
         messages = load_chat_memory(session_id, prompt)
 
 
-    decision = decision["structured_response"]
     agent = decision.agent
     reason = decision.reason
 
-    agent_client = AgentClient(llm, agent)
+    agent_client = AgentClient(chat_llm, agent)
     agent = agent_client.create_agent()
 
 
     guarded_agent = token_guard(
         agent,
-        provider=llm.provider,
-        model_name=llm.model,
-        hard_prompt_cap=llm.hard_prompt_cap
+        provider="google",
+        model_name="gemini-2.5-flash",
+        hard_prompt_cap=4096
     )
 
 
 
     config = RunnableConfig(
-        max_retries=llm.max_retries,
+        max_retries=3,
         configurable={
         "session_id": session_id,
         }
@@ -104,16 +92,14 @@ while True:
     else:
         messages.append({"role": "user", "content": prompt})    
     
-    # print(messages)
     response = guarded_agent.invoke({"messages": messages}, config=config)
 
-    # print(response)
+
     tool_ui = extract_tool_ui(response["messages"])
 
     if tool_ui:
         render_ui(tool_ui)
 
-    # print(tool_ui)
     if isinstance(tool_ui, list) and tool_ui:
         if tool_ui[0].get("pending", False):
             set_pending = True

@@ -1,0 +1,49 @@
+# Configuration for AdminMind application
+# Edit this file to customize behavior without changing code
+
+# ======================================================================
+# Provider Settings
+# ======================================================================
+
+provider:
+  # Which provider to use: "openrouter" (recommmended) or "openai"
+  default: openrouter
+
+
+  # Model tier to use: "general" , "strong" or "reason"
+  tier: general
+
+
+  # Openrouter base url
+  openrouter_base_url: https://openrouter.ai/api/v1
+
+
+# =====================================================================
+# LLM Defaults 
+# =====================================================================
+llm:
+  temperature: 0.0
+  max_tokens: 2000
+  streaming: false
+
+# =====================================================================
+# Embedding Settings
+# =====================================================================
+
+embedding:
+  # Model tier: "default" (3072d) or "small" (????d) 
+  tier: small
+  batch_size: 100
+  show_progress: false
+
+
+# =====================================================================
+# Retieval Configuration
+# =====================================================================
+retrieval: 
+  top_k: 5
+  similarity_threshold: 0.7
+
+
+
+

@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import List, Dict
 import json
-from database.vector_db import QdrantStorage
+from src.infrastructure.db import QdrantStorage
 
 
 
