@@ -8,7 +8,7 @@ def shutdown(time:int = 0) -> str :
     try:
         if os == 'windows':
             cmd = ['shutdown', '/r', '/t', time]
-        elif os == 'linux' | 'darvin':
+        elif os == 'linux' or os == 'darwin':
             cmd = ['shutdown', '-h', 'now'] #command need to be added for time 
     
         response = subprocess.ren(cmd, capture_output=True, text=true)
@@ -17,7 +17,7 @@ def shutdown(time:int = 0) -> str :
             'result':response,
             'ui_type':'normal_window'
         }
-    except exception as e:
+    except Exception as e:
         return {
             'sucess':False,
             'error':str(e),
@@ -30,7 +30,7 @@ def restart(time:int = 0) -> str :
     try:
         if os == 'windows':
             cmd = ['shutdown', '/s', '/t', time]
-        elif os == 'linux' | 'darvin':
+        elif os == 'linux' or os == 'darwin':
             cmd = ['reboot'] #command need to be added
     
         response = subprocess.ren(cmd, capture_output=True, text=true)
@@ -39,7 +39,7 @@ def restart(time:int = 0) -> str :
             'result':response,
             'ui_type':'normal_window'
         }
-    except exception as e:
+    except Exception as e:
         return {
             'sucess':False,
             'error':str(e),

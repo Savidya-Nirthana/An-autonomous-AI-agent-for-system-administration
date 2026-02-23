@@ -16,7 +16,7 @@ Agents:
 - network → basic ip address operations pinging, traceroute
 - admin → system operations, setup, configuration admin don't do ping commands
 - security → firewall and security operations both and credentials on devices
-- datetime → date time related operations both and credentials on devices
+- datetime → date time related operations both and credentials on devices and system uptime
 - networkandfile → network and file operations both
 - usagemonitoring → monitoring system usage cpu, memory, disk space
 - filesharing → file sharing operations in same computer or different computer and computers

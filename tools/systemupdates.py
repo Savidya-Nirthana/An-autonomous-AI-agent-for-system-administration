@@ -16,7 +16,7 @@ def updatePackages(package : List = ['all']) -> str :
 
         if os == 'windows':
             cmd = ['winget', 'upgrade'] + package
-        elif os == 'linux' | os == 'darvin':
+        elif os == 'linux' or os == 'darwin':
             cmd = ['apt', 'update', '&&', 'apt', 'upgrade', '-y']
         
         response = subprocess.run(cmd, capture_output=True, text=True)

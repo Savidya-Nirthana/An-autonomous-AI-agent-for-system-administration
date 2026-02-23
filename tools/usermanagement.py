@@ -13,7 +13,7 @@ def createNewUser(names:List = 'user', password :str = "") -> Dict :
         os = checkOS()
         if os == 'windows':
             cmd = ['net', 'user'].extend(names).extend([ password, '/add'])
-        elif os == 'linux' | os == 'darvin' :
+        elif os == 'linux' or os == 'darwin' :
             cmd = ['sudo', 'useradd','-m'].extend(names).extend(['-p', password ])
 
         response = subprocess.run(cmd, capture_output=True, text=True)
@@ -40,7 +40,7 @@ def changeUserPassword(name:str = 'user', password :str = "") -> Dict :
         os = checkOS()
         if os == 'windows':
             cmd = ['net', 'user', name, password]
-        elif os == 'linux' | os == 'darvin' :
+        elif os == 'linux' or os == 'darwin' :
             cmd = ['passwd'] + ['-m', name]
 
         response = subprocess.run(cmd, capture_output=True, text=True)
@@ -67,7 +67,7 @@ def createGroup(group:str) -> Dict :
         os = checkOS()
         if os == 'windows':
             cmd = [] #no direct command , commands need to be added
-        elif os == 'linux' | os == 'darvin' :
+        elif os == 'linux' or os == 'darwin' :
             cmd = ['sudo', 'groupadd ', group]
 
         response = subprocess.run(cmd, capture_output=True, text=True)
@@ -84,7 +84,6 @@ def createGroup(group:str) -> Dict :
             'ui_type':'Normal_window'
         }
 
-
 #neet to check wheter the given group was exist or not
 @tool
 def addUsersToGroup(user:str = 'user', group :str = "") -> Dict :
@@ -95,7 +94,7 @@ def addUsersToGroup(user:str = 'user', group :str = "") -> Dict :
         os = checkOS()
         if os == 'windows':
             cmd = ['net', 'localgroup', group ,user,'/add']
-        elif os == 'linux' | os == 'darvin' :
+        elif os == 'linux' or os == 'darwin' :
             cmd = ['usermod'] + ['-aG' ,group, user] #sudo might be needed
 
         response = subprocess.run(cmd, capture_output=True, text=True)
@@ -120,7 +119,7 @@ def disableAccount(users:List) -> Dict:
 
         if os == 'windows':
             cmd = ['net', 'user'].extend(users).extend(['/deactivate:yes']) #need to check this command
-        elif os == 'linux' | os == 'darvin':
+        elif os == 'linux' or os == 'darwin':
             cmd = ['usermod', '-L' ]  #neet to specify user
 
         response = subprocess.run(cmd, capture_output=True , text=True)
@@ -143,7 +142,7 @@ def enableAccount(users:List) -> Dict:
 
         if os == 'windows':
             cmd = ['net', 'user'].extend(users).extend(['/active:yes'])
-        elif os == 'linux' | os == 'darvin':
+        elif os == 'linux' or os == 'darwin':
             cmd = ['usermod' '-U'] #neet to add use
 
         response = subprocess.run(cmd, capture_output=True , text=True)
@@ -166,7 +165,7 @@ def deleteUser(user:str) -> Dict :
         os = checkOS()
         if os == 'windows':
             cmd = ['Remove-LocalUser', '-Name', user] #powershell
-        elif os == 'linux' | os == 'darvin' :
+        elif os == 'linux' or os == 'darwin' :
             cmd = ['sudo', 'userdel', '-r', group]
 
         response = subprocess.run(cmd, capture_output=True, text=True)

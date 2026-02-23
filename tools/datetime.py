@@ -19,7 +19,11 @@ def get_last_time_sync_details() -> str:
         elif os in ("linux", "darwin"):
             cmd = ["timedatectl", "status"]
         else:
-            raise ValueError(f"Unsupported OS: {os}")
+            return {
+                'sucess':False,
+                'error':'OS not supported',
+                'ui_type':'Normal_window'
+            }
 
         result = subprocess.run(cmd, capture_output=True, text=True)
         return {
@@ -45,7 +49,11 @@ def sync_time() -> str:
         elif os in ("linux", "darwin"):
             cmd = ["timedatectl", "set-ntp", "true"]
         else:
-            raise ValueError(f"Unsupported OS: {os}")
+            return {
+                'sucess':False,
+                'error':'OS not supported',
+                'ui_type':'Normal_window'
+            }
 
         result = subprocess.run(cmd, capture_output=True, text=True)
         return {
@@ -65,16 +73,29 @@ def viewUPTime() -> str:
     ''' Show how long the system has been running pretty printed'''
     os = checkOS()
     try:
-        if 'linux' | 'darvin':
+        if os == 'linux' or os == 'darwin':
             cmd = ['uptime'] 
     
-        response = subprocess.ren(cmd, capture_output=True, text=true)
+        elif os == 'windows':
+            return {
+                'sucess':True,
+                'result':'This tool is only for linux and darwin',
+                'ui_type':'normal_window'
+            }
+        else:
+            return {
+                'sucess':False,
+                'error':'OS not supported',
+                'ui_type':'Normal_window'
+            }
+
+        response = subprocess.run(cmd, capture_output=True, text=True)
         return {
             'sucess':True,
             'result':response,
             'ui_type':'normal_window'
         }
-    except exception as e:
+    except Exception as e:
         return {
             'sucess':False,
             'error':str(e),

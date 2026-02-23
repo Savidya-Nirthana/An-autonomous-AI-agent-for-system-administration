@@ -4,7 +4,7 @@ from tools.filesystem import make_dir, create_file, change_dir, list_dir
 from tools.network import ping, traceroute, get_ip_address, show_ipconfig, get_default_gateway
 from tools.firewall import firewall_status, restore_internet_connection, block_internet_connection, turn_on_firewall, turn_off_firewall, view_saved_credintials_by_os, delay
 from tools.usagemonitoring import cpu_usage, memory_usage, disk_usage
-from tools.datetime import get_last_time_sync_details, sync_time
+from tools.datetime import get_last_time_sync_details, sync_time, viewUPTime
 from tools.filesharing import send_files
 from tools.security import full_route
 from tools.power import shutdown, restart
@@ -75,8 +75,8 @@ class AgentClient:
         elif self.agent_name == "datetime":
             return create_agent(
                 model=self.llm_client,
-                tools=[get_last_time_sync_details, sync_time],
-                system_prompt="You are a helpful assistant who can perform datetime operations (get last time sync details, sync time)",
+                tools=[get_last_time_sync_details, sync_time,viewUPTime],
+                system_prompt="You are a helpful assistant who can perform datetime operations (get last time sync details, sync time, system uptime)",
             )
         
         elif self.agent_name == "filesharing":
@@ -92,4 +92,40 @@ class AgentClient:
                 tools=[full_route],
                 system_prompt="You are a helpful assistant who can perform routing operations like (pathping)",
             )
+
+        elif self.agent_name == "power":
+            return create_agent(
+                model=self.llm_client,
+                tools=[shutdown, restart],
+                system_prompt="You are a helpful assistant who can perform power operations like (shutdown, restart)",
+            )
+        
+        elif self.agent_name == "hardwaremonitoring":
+            return create_agent(
+                model=self.llm_client,
+                tools=[viewCPUfantemp,viewDriveHealth,viewHardwareSummary,viewUSBDevices,viewPCIInfomation],
+                system_prompt="You are a helpful assistant who can perform hardware monitoring operations like (viewCPUfantemp,viewDriveHealth,viewHardwareSummary,viewUSBDevices,viewPCIInfomation)",
+            )
+
+        elif self.agent_name == "systemperformance":
+            return create_agent(
+                model=self.llm_client,
+                tools=[viewCPUUtilization],
+                system_prompt="You are a helpful assistant who can perform system performance operations like (viewCPUUtilization)",
+            )
+
+        elif self.agent_name == "usermanagement":
+            return create_agent(
+                model=self.llm_client,
+                tools=[createNewUser,changeUserPassword,addUsersToGroup,disableAccount,enableAccount,deleteUser,createGroup],
+                system_prompt="You are a helpful assistant who can perform user management operations like (createNewUser,changeUserPassword,addUsersToGroup,disableAccount,enableAccount,deleteUser,createGroup)",
+            )
+
+        elif self.agent_name == "systemupdates":
+            return create_agent(
+                model=self.llm_client,
+                tools=[update_system],
+                system_prompt="You are a helpful assistant who can perform system updates operations like (update_system)",
+            )
+
 
