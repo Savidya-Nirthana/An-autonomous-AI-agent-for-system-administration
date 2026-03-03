@@ -21,7 +21,7 @@ class QdrantStorage:
                 vectors_config=VectorParams(size=dim, distance=Distance.COSINE)
             )
 
-    
+     
     def upsert(self, session_id: str, user_test: str, assistant_text: str):
         memory_object = [
             {
