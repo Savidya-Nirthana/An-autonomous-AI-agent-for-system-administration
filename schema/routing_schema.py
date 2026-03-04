@@ -7,10 +7,9 @@ class RoutingDecision(BaseModel):
         "filesystem",
         "admin",
         "network",
-        "networkandfile",
-        "firewallandsecurity",
-        "usagemonitoring"
+        "firewall",
+        "monitoring",
+        "FINISH"
     ]
 
     reason: str
-    
