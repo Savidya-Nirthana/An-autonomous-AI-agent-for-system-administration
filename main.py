@@ -1,8 +1,8 @@
 from langchain_core.runnables import RunnableConfig
-from utils.token_utils import token_guard
+from src.utils.token_utils import token_guard
 from src.agents.router_agent import create_router_agent
 from src.agents import AgentClient
-from utils.memory_store import save_chat_memory, load_chat_memory
+from src.utils.memory_store import save_chat_memory, load_chat_memory
 from cli.networking import show_default_gateway_ui
 from core.tool_parser import extract_tool_ui
 from core.tool_router_ui import render_ui
@@ -54,9 +54,9 @@ while True:
 
                 INSTRUCTION: Proceed with the task using this new information.
             """
-            decision = router.invoke({"messages": [{"role": "user", "content": pending_prompt}]})
+            decision = router.invoke({ 'input': pending_prompt})
         else:
-            decision = router.invoke({ "input": prompt})
+            decision = router.invoke({ 'input': prompt})
     
 
 

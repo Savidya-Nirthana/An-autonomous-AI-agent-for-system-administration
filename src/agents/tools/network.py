@@ -11,7 +11,7 @@ from rich.table import Table
 import socket
 import shutil
 import json
-from utils.execution_log import log_execution
+from src.utils.execution_log import log_execution
 
 console = Console()
 
