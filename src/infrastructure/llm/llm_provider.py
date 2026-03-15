@@ -70,5 +70,6 @@ def get_chat_llm(temperature: float = 0.0, **kwargs: Any) -> ChatOpenAI:
         model=CHAT_MODEL,
         provider=CHAT_PROVIDER,
         temperature=0.0,
+        max_tokens=2000,
         **kwargs
     )

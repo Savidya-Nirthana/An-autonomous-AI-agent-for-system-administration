@@ -9,8 +9,9 @@ from .graph import chatops_graph
 # Tool exports (for backward compat / direct use)
 from .tools.filesystem import *
 from .tools.network import *
-from .tools.firewallandsecurity import *
+from .tools.firewallmanagement import *
 from .tools.usagemonitoring import *
+from .tools.usermanagement import *
 
 __all__ = [
     "chatops_graph",

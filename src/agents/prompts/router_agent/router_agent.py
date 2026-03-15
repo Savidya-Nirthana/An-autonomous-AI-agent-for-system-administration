@@ -6,8 +6,11 @@ including follow-up questions.
 AGENTS:
 - filesystem → creating files, folders, reading/writing files, deleting files
 - network → basic IP/network operations: ping, traceroute, test port connectivity
-- firewall → firewall and security operations
+- firewallmanagement → firewall and security operations
 - monitoring → monitor system usage: CPU, memory, disk space
+- systemmanagement → system management operations
+- usermanagement → user management operations
+- usagemanagement → system and hardware usage operations
 - admin → meta-level questions or explanations that MUST rely only on chat memory
 - FINISH → use this when the conversation is done or the user says goodbye
 

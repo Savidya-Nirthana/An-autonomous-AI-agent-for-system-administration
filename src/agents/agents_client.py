@@ -2,9 +2,10 @@ from typing import Literal
 from langchain.agents import create_agent
 from .tools.filesystem import make_dir, create_file, change_dir, list_dir,pending_manage
 from .tools.network import ping, traceroute, get_ip_address, show_ipconfig, get_default_gateway, tcp_port_check
-from .tools.firewallandsecurity import firewall_status
+from .tools.firewallmanagement import firewall_status
 from .tools.usagemonitoring import cpu_usage, memory_usage, disk_usage
 from .tools.filesystem_delete import delete_file_request, delete_file_confirm
+from .tools.usermanagement import add_user, delete_user, list_users, update_user
 from .prompts.admin.admin_prompts import admin_system_prompt
 from .prompts.file_system.file_system import filesystem_prompt
 

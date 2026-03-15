@@ -21,6 +21,7 @@ from src.agents.nodes import (
     firewall_node,
     monitoring_node,
     admin_node,
+    users_node
 )
 
 
@@ -36,6 +37,8 @@ def build_graph() -> StateGraph:
     graph.add_node("firewall", firewall_node)
     graph.add_node("monitoring", monitoring_node)
     graph.add_node("admin", admin_node)
+    # graph.add_node("systemmanagement", systemmanagement_node) #added and ontesting
+    graph.add_node("users", users_node) #added and ontesting
 
     # ── Entry point ──────────────────────────────────────────────
     graph.set_entry_point("supervisor")
@@ -50,12 +53,13 @@ def build_graph() -> StateGraph:
             "firewall": "firewall",
             "monitoring": "monitoring",
             "admin": "admin",
+            "users": "users",
             "__end__": END,
         },
     )
 
     # ── Each agent loops back to the supervisor ──────────────────
-    for node_name in ["filesystem", "network", "firewall", "monitoring", "admin"]:
+    for node_name in ["filesystem", "network", "firewall", "monitoring", "admin", "users"]:
         graph.add_edge(node_name, "supervisor")
 
     return graph.compile()

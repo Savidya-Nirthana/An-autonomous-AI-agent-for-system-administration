@@ -11,6 +11,7 @@ from .network_node import network_node
 from .firewall_node import firewall_node
 from .monitoring_node import monitoring_node
 from .admin_node import admin_node
+from .users_node import users_node
 from .helpers import build_agent_messages
 
 __all__ = [
@@ -19,5 +20,6 @@ __all__ = [
     "firewall_node",
     "monitoring_node",
     "admin_node",
+    "users_node",
     "build_agent_messages",
 ]

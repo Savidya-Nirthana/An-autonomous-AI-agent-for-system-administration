@@ -23,4 +23,5 @@ dependencies = [
     "langchain-openai>=1.1.10",
     "langgraph>=1.0.6",
     "prompt-toolkit>=3.0.52",
+    "scp>=0.15.0",
 ]

@@ -12,12 +12,18 @@ from cli.cli_functions import (
     pending_message,
 )
 
+#added by chrishmika to get admin access on start
+from cli.take_admin_access import req_Admin_Access
+req_Admin_Access()
+
+
 welcome_banner()
 session_id = login_form()
 
 if not session_id:
     exit()
 
+welcome_banner()
 welcome_msg()
 
 

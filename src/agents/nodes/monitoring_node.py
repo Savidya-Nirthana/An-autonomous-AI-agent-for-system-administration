@@ -7,17 +7,25 @@ from langchain_core.runnables import RunnableConfig
 
 from src.agents.state import AgentState
 from src.infrastructure.llm import get_chat_llm
-from src.agents.tools.usagemonitoring import cpu_usage, memory_usage, disk_usage
+from src.agents.tools.usagemonitoring import (
+    cpu_usage, 
+    memory_usage, 
+    disk_usage, 
+    viewCPUfantemp, 
+    viewDriveHealth, 
+    viewHardwareSummary, 
+    viewUSBDevices
+)
 from .helpers import build_agent_messages, extract_final_response
 
 
 _SYSTEM_PROMPT = (
     "You are a system monitoring assistant. "
-    "Use the provided tools to check CPU, memory, and disk usage. "
+    "Use the provided tools to check CPU, memory, hardware ,connected devices, drives and disk usage. "
     "Always run the tools to get fresh data — never reuse previous results."
 )
 
-_TOOLS = [cpu_usage, memory_usage, disk_usage]
+_TOOLS = [cpu_usage, memory_usage, disk_usage, viewCPUfantemp, viewDriveHealth, viewHardwareSummary, viewUSBDevices]
 
 _agent = create_react_agent(
     model=get_chat_llm(),

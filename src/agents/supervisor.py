@@ -39,8 +39,9 @@ AVAILABLE AGENTS:
 - filesystem → file/folder operations (create, delete, list, navigate)
 - network → ping, traceroute, IP lookup, port check
 - firewall → firewall status and security settings
-- monitoring → CPU, memory, disk usage
+- monitoring → CPU, memory, disk usage, hardware, connected devices, drives
 - admin → answer questions using ONLY chat memory
+- users → user management (create, delete, update, disable, enable, add/remove users from groups)
 - FINISH → ALL tasks in the user's request are complete
 
 RULES:

@@ -1,5 +1,5 @@
 version = 1
-revision = 2
+revision = 3
 requires-python = ">=3.13"
 resolution-markers = [
     "python_full_version >= '3.14'",
@@ -207,6 +207,7 @@ dependencies = [
     { name = "pyfiglet" },
     { name = "qdrant-client" },
     { name = "rich" },
+    { name = "scp" },
     { name = "tiktoken" },
     { name = "uuid" },
     { name = "uuid6" },
@@ -228,6 +229,7 @@ requires-dist = [
     { name = "pyfiglet", specifier = ">=1.0.4" },
     { name = "qdrant-client", specifier = ">=1.16.2" },
     { name = "rich", specifier = ">=14.2.0" },
+    { name = "scp", specifier = ">=0.15.0" },
     { name = "tiktoken", specifier = ">=0.12.0" },
     { name = "uuid", specifier = ">=1.30" },
     { name = "uuid6", specifier = ">=2025.0.1" },
@@ -1316,6 +1318,18 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/da/8a/22b7beea3ee0d44b1916c0c1cb0ee3af23b700b6da9f04991899d0c555d4/rsa-4.9.1.tar.gz", hash = "sha256:e7bdbfdb5497da4c07dfd35530e1a902659db6ff241e39d9953cad06ebd0ae75", size = 29034, upload-time = "2025-04-16T09:51:18.218Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/64/8d/0133e4eb4beed9e425d9a98ed6e081a55d195481b7632472be1af08d2f6b/rsa-4.9.1-py3-none-any.whl", hash = "sha256:68635866661c6836b8d39430f97a996acbd61bfa49406748ea243539fe239762", size = 34696, upload-time = "2025-04-16T09:51:17.142Z" },
+]
+
+[[package]]
+name = "scp"
+version = "0.15.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "paramiko" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/d6/1c/d213e1c6651d0bd37636b21b1ba9b895f276e8057f882c9f944931e4f002/scp-0.15.0.tar.gz", hash = "sha256:f1b22e9932123ccf17eebf19e0953c6e9148f589f93d91b872941a696305c83f", size = 13905, upload-time = "2024-05-23T21:37:41.835Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/79/b3/561cd6afa959e9dd522af12acc4f803e8bab1bd0e383bffc5211721c5fcb/scp-0.15.0-py2.py3-none-any.whl", hash = "sha256:9e7f721e5ac563c33eb0831d0f949c6342f1c28c3bdc3b02f39d77b5ea20df7e", size = 8753, upload-time = "2024-05-23T21:37:46.226Z" },
 ]
 
 [[package]]
