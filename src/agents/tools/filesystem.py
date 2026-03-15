@@ -3,6 +3,7 @@ from src.utils.execution_log import log_execution
 import os
 import platform
 import stat
+import re
 from typing import Dict, Any
 from pathlib import Path
 from langchain_core.runnables import RunnableConfig
@@ -51,7 +52,7 @@ def create_file(file_name: str, content: str) -> str:
 
 
 @tool
-def change_dir(path: str)-> str:
+def change_dir(path: str)-> Dict[str, Any]:
     """ 
     Change the working directory (cross-platform)
     Support absolute, relateve, ~, Windows & unix paths.
@@ -59,6 +60,13 @@ def change_dir(path: str)-> str:
     """
 
     try:
+        # ── Windows drive-letter normalization ──────────────────
+        #    Handles bare inputs like "d", "D", "D:" → "D:\"
+        stripped = path.strip()
+        if re.match(r'^[a-zA-Z]:?$', stripped):
+            drive = stripped[0].upper()
+            path = f"{drive}:\\"
+
         resolved_path = Path(path).expanduser()
 
         if not resolved_path.is_absolute():
@@ -163,6 +171,76 @@ def list_dir(path: str = ".", view: str = "simple") -> Dict[str, Any]:
 
 
 @tool
+def file_info(path: str) -> Dict[str, Any]:
+    """
+    Get detailed information about a SINGLE file or directory.
+    Use this instead of list_dir when the user asks about a specific file.
+
+    args:
+        path (str): path to the file or directory (absolute or relative)
+
+    Returns name, type, size, permissions, and last-modified time.
+    """
+    from datetime import datetime
+
+    system = platform.system().lower()
+
+    try:
+        resolved = Path(path).expanduser()
+        if not resolved.is_absolute():
+            resolved = (WORKING_STATE["cwd"] / resolved).resolve()
+
+        if not resolved.exists():
+            return {
+                "success": False,
+                "error": f"Path not found: {resolved}",
+                "ui_type": "file_info",
+            }
+
+        info = os.stat(resolved)
+        is_dir = stat.S_ISDIR(info.st_mode)
+
+        entry = {
+            "success": True,
+            "name": resolved.name,
+            "full_path": str(resolved),
+            "type": "directory" if is_dir else "file",
+            "size_bytes": info.st_size,
+            "permissions": stat.filemode(info.st_mode),
+            "last_modified": datetime.fromtimestamp(info.st_mtime).strftime(
+                "%Y-%m-%d %H:%M:%S"
+            ),
+            "ui_type": "file_info",
+        }
+
+        if system != "windows":
+            entry["owner"] = pwd.getpwuid(info.st_uid).pw_name
+            entry["group"] = grp.getgrgid(info.st_gid).gr_name
+        else:
+            entry["owner"] = "N/A"
+            entry["group"] = "N/A"
+
+        # Extra info for files
+        if not is_dir:
+            entry["extension"] = resolved.suffix or "none"
+
+        return entry
+
+    except PermissionError:
+        return {
+            "success": False,
+            "error": f"Permission denied: {path}",
+            "ui_type": "file_info",
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e),
+            "ui_type": "file_info",
+        }
+
+
+@tool
 def pending_manage(question: str, config: RunnableConfig):
     """
     Call this tool when you need more information from the user.
@@ -181,4 +259,59 @@ def pending_manage(question: str, config: RunnableConfig):
         "session_id" : session_id,
         "question" : question
     }
+
+
+@tool
+def read_file(path: str) -> Dict[str, Any]:
+    """
+    Read the contents of a text file.
+
+    args:
+        path (str): path to the file (absolute or relative)
+
+    Returns file content or error message.
+    """
+    try:
+        resolved = Path(path).expanduser()
+        if not resolved.is_absolute():
+            resolved = (WORKING_STATE["cwd"] / resolved).resolve()
+
+        if not resolved.exists():
+            return {
+                "success": False,
+                "error": f"Path not found: {resolved}",
+                "ui_type": "read_file",
+            }
+
+        if resolved.is_dir():
+            return {
+                "success": False,
+                "error": f"Path is a directory, not a file: {resolved}",
+                "ui_type": "read_file",
+            }
+
+        with open(resolved, "r", encoding="utf-8", errors="ignore") as f:
+            content = f.read()
+
+        return {
+            "success": True,
+            "name": resolved.name,
+            "full_path": str(resolved),
+            "content": content,
+            "size_bytes": len(content.encode("utf-8")),
+            "ui_type": "read_file",
+        }
+
+    except PermissionError:
+        return {
+            "success": False,
+            "error": f"Permission denied: {path}",
+            "ui_type": "read_file",
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e),
+            "ui_type": "read_file",
+        }
     

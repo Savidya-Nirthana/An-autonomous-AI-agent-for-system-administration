@@ -9,17 +9,17 @@ from src.agents.state import AgentState
 from src.agents.prompts.file_system.file_system import filesystem_prompt
 from src.infrastructure.llm import get_chat_llm
 from src.agents.tools.filesystem import (
-    make_dir, create_file, change_dir, list_dir, pending_manage,
+    make_dir, create_file, change_dir, list_dir, file_info, pending_manage, read_file
 )
 from src.agents.tools.filesystem_delete import (
-    delete_file_request, delete_file_confirm,
+    delete_file_request, delete_file_confirm
 )
 from .helpers import build_agent_messages, extract_final_response
 
 
 _TOOLS = [
-    make_dir, create_file, change_dir, list_dir,
-    delete_file_request, delete_file_confirm, pending_manage,
+    make_dir, create_file, change_dir, list_dir, file_info,
+    delete_file_request, delete_file_confirm, pending_manage, read_file
 ]
 
 _agent = create_react_agent(

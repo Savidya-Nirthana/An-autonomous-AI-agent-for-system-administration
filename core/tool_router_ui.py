@@ -1,5 +1,5 @@
 from cli.networking import show_default_gateway_ui, show_ip_address_ui, show_traceroute_ui, show_tcp_port_check_ui
-from cli.filesystem import show_detailed_list_ui, show_simple_list_ui
+from cli.filesystem import show_detailed_list_ui, show_simple_list_ui, show_file_info_ui, show_read_file_ui
 from cli.resourse_monitoring import show_cpu_basic_ui, show_cpu_full_ui
 
 def render_ui(tool_data: dict) -> bool:
@@ -20,6 +20,12 @@ def render_ui(tool_data: dict) -> bool:
                 show_simple_list_ui(tool["entries"])
             else:
                 show_detailed_list_ui(tool["entries"])
+
+        elif ui_type == "file_info":
+            show_file_info_ui(tool)
+        
+        elif ui_type == "read_file":
+            show_read_file_ui(tool)
 
         elif ui_type == "tcp_port_check":
             show_tcp_port_check_ui(tool)
