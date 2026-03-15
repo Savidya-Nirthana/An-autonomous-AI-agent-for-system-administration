@@ -2,26 +2,39 @@ from langchain.tools import tool
 from src.utils.execution_log import log_execution
 import sys
 import os
-
+import subprocess
+import shutil
+from rich.console import Console
 
 # testing process...
 
 @tool
-def firewall_status() -> str:
+def firewall_status() -> dict:
     """Show firewall status"""
     try:
         if sys.platform == "win32":
             command = "netsh advfirewall show allprofiles" 
         elif sys.platform in ("linux" , "darwin") : 
             command = "ufw status verbose"
-            
-        return f"{os.system(command)}"
+        
+        result = subprocess.getoutput(command)
+
+        return {
+            'result':result,
+            'sucess':True,
+            'error':None,
+            'ui_type':'Normal_window'
+        }
     except Exception as e:
-        print(f"Error finding firewall status: {e}")
+       return {
+            'sucess':False,
+            'error':str(e),
+            'ui_type':'Normal_window'
+        }
 
 
 @tool
-def view_saved_credintials_by_os() ->str:
+def view_saved_credintials_by_os() ->dict:
     """listing saved credentials managed by the OS """
     """Do not use previous results to run this tool again"""
     try:
@@ -62,7 +75,7 @@ def view_saved_credintials_by_os() ->str:
             }
 
 @tool
-def turn_off_firewall() -> str:
+def turn_off_firewall() -> dict:
     """Turn off firewall for all profiles"""
     try:
         if sys.platform == "win32":
@@ -93,7 +106,7 @@ def turn_off_firewall() -> str:
         }
 
 @tool
-def turn_on_firewall() -> str:
+def turn_on_firewall() -> dict:
 
     """Turn on firewall for all profiles"""
     """Do not use previous results to run this tool again"""
@@ -130,7 +143,7 @@ def turn_on_firewall() -> str:
         }
 
 @tool
-def block_internet_connection() -> str:
+def block_internet_connection() -> dict:
     """
     Turns on the firewall and blocks all inbound and outbound traffic.
     """
@@ -164,7 +177,7 @@ def block_internet_connection() -> str:
         }
 
 @tool
-def restore_internet_connection() -> str:
+def restore_internet_connection() -> dict:
     """
     Restores internet access by allowing outbound traffic and blocking inbound.
     """
@@ -200,7 +213,7 @@ def restore_internet_connection() -> str:
 
 
 @tool 
-def delay(duration:int = 10) -> str:
+def delay(duration:int = 10) -> dict:
     """Delay for a specified duration in seconds if time send as minutes or hours convert it to seconds"""
     """Do not use previous results to run this tool again"""
 

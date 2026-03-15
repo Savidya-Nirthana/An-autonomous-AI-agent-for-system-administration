@@ -50,7 +50,7 @@ def shutdown(time:int = 0) -> str :
         elif os == 'linux' or os == 'darwin':
             cmd = ['shutdown', '-h', 'now'] #command need to be added for time 
     
-        response = subprocess.ren(cmd, capture_output=True, text=true)
+        response = subprocess.run(cmd, capture_output=True, text=True)
         return {
             'sucess':True,
             'result':response,
@@ -72,7 +72,7 @@ def restart(time:int = 0) -> str :
         elif os == 'linux' or os == 'darwin':
             cmd = ['reboot'] #command need to be added
     
-        response = subprocess.ren(cmd, capture_output=True, text=true)
+        response = subprocess.run(cmd, capture_output=True, text=true)
         return {
             'sucess':True,
             'result':response,

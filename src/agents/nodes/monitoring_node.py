@@ -21,7 +21,7 @@ from .helpers import build_agent_messages, extract_final_response
 
 _SYSTEM_PROMPT = (
     "You are a system monitoring assistant. "
-    "Use the provided tools to check CPU, memory, hardware ,connected devices, drives and disk usage. "
+    "Use the provided tools to check CPU, memory, hardware ,connected devices, drives, usb deices and disk usage. "
     "Always run the tools to get fresh data — never reuse previous results."
 )
 

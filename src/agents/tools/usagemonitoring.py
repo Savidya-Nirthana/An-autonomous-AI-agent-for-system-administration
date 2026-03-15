@@ -106,12 +106,13 @@ def disk_usage():
 def checkWMIC() -> bool:
     iswmic = subprocess.run(['where wmic >nul 2>nul'], capture_output=True, shell=True)
             
-    if iswmic.returncode != 0:
-        print('wmic installing')
-        subprocess.run('DISM /Online /Add-Capability /CapabilityName:WMIC~~~~', shell=True) #admin access is needed
+    if iswmic.returncode == 0:
         print('wmic installed')
         return True
-    return False
+    print('wmic installing')
+    subprocess.run('DISM /Online /Add-Capability /CapabilityName:WMIC~~~~', shell=True) #admin access is needed
+    print('wmic installed')
+    return True
 
 #text this on linux
 @tool
@@ -132,7 +133,7 @@ def viewCPUfantemp() -> str:
                 'ui_type':'Normal_window'
             }
             
-        response = subprocess.ren(cmd, capture_output=True, text=true)
+        response = subprocess.run(cmd, capture_output=True, text=True)
         return {
             'sucess':True,
             'result':response,
@@ -162,7 +163,7 @@ def viewDriveHealth() -> str:
                 'ui_type':'Normal_window'
             }
         
-        response = subprocess.ren(cmd, capture_output=True, text=true)
+        response = subprocess.run(cmd, capture_output=True, text=True)
         return {
             'sucess':True,
             'result':response,
@@ -175,6 +176,8 @@ def viewDriveHealth() -> str:
             'ui_type':'Normal_window'
         }
 
+
+#tested with windowss
 @tool
 def viewHardwareSummary() -> str:
     ''' view hardware details as a summary'''
@@ -194,7 +197,7 @@ def viewHardwareSummary() -> str:
                 'ui_type':'Normal_window'
             }
 
-        response = subprocess.ren(cmd, capture_output=True, text=true)
+        response = subprocess.run(cmd, capture_output=True, text=True)
         return {
             'sucess':True,
             'result':response,
@@ -224,7 +227,7 @@ def viewUSBDevices() -> str:
                 'error':'OS not supported',
                 'ui_type':'Normal_window'
             }
-        response = subprocess.ren(cmd, capture_output=True, text=true)
+        response = subprocess.run(cmd, capture_output=True, text=True)
         return {
             'sucess':True,
             'result':response,
@@ -255,7 +258,7 @@ def viewPCIInfomation() -> str:
                 'ui_type':'Normal_window'
             }
 
-        response = subprocess.ren(cmd, capture_output=True, text=true)
+        response = subprocess.run(cmd, capture_output=True, text=True)
         return {
             'sucess':True,
             'result':response,
