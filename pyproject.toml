@@ -5,22 +5,29 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
-    "dotenv>=0.9.9",
+    "python-dotenv>=1.0.0",
+    # ── Auth / DB ──────────────────────────────────────────────────────────────
+    "sqlalchemy>=2.0.0",
+    "psycopg2-binary>=2.9.0",    # PostgreSQL driver
+    "bcrypt>=4.0.0",             # Password hashing
+    # ── AI / LLM ──────────────────────────────────────────────────────────────
     "google-genai>=1.57.0",
+    "openai>=2.14.0",
     "langchain>=1.2.3",
+    "langchain-core>=0.3.0",
     "langchain-google-genai>=4.2.0",
     "langchain-groq",
-    "openai>=2.14.0",
+    "langchain-openai>=1.1.10",
+    "langgraph>=1.0.6",
+    # ── CLI / UI ───────────────────────────────────────────────────────────────
     "pyfiglet>=1.0.4",
     "rich>=14.2.0",
+    "prompt-toolkit>=3.0.52",
+    # ── Utilities ─────────────────────────────────────────────────────────────
     "tiktoken>=0.12.0",
-    "uuid6>=2025.0.1",
-    "langchain-groq",
     "psutil>=7.2.1",
     "paramiko>=4.0.0",
     "qdrant-client>=1.16.2",
+    "uuid6>=2025.0.1",
     "uuid>=1.30",
-    "langchain-openai>=1.1.10",
-    "langgraph>=1.0.6",
-    "prompt-toolkit>=3.0.52",
 ]

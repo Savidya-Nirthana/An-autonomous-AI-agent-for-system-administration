@@ -1,0 +1,50 @@
+"""
+=============================================================
+  ROLE LIMITS CONFIGURATION — Edit this file to change limits
+=============================================================
+"""
+
+# ── Allowed tool categories per role ──────────────────────────────────────────
+# Add or remove tool names from each list to grant/revoke access.
+ROLE_PERMISSIONS: dict[str, list[str]] = {
+    "root_admin": [
+        "filesystem",
+        "filesystem_delete",
+        "network",
+        "firewall_security",
+        "usage_monitoring",
+    ],
+    "admin": [
+        "filesystem",
+        "network",
+        "firewall_security",
+        "usage_monitoring",
+    ],
+    "user": [
+        "filesystem",
+        "network",
+        "usage_monitoring",
+    ],
+}
+
+# ── Per-role session & usage limits ───────────────────────────────────────────
+ROLE_LIMITS: dict[str, dict] = {
+    "root_admin": {
+        "max_requests_per_session": -1,       # -1 = unlimited
+        "max_sessions_per_day":     -1,
+        "session_timeout_minutes":  480,       # 8 hours
+        "max_prompt_length":        8000,
+    },
+    "admin": {
+        "max_requests_per_session": 200,
+        "max_sessions_per_day":     10,
+        "session_timeout_minutes":  240,       # 4 hours
+        "max_prompt_length":        4000,
+    },
+    "user": {
+        "max_requests_per_session": 50,
+        "max_sessions_per_day":     5,
+        "session_timeout_minutes":  60,        # 1 hour
+        "max_prompt_length":        2000,
+    },
+}
