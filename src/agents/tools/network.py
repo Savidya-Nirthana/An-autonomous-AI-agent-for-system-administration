@@ -55,14 +55,7 @@ def ping(host: str, count: int = 4, timeout: int = 3) -> Dict[str, Any]:
 
     system = platform.system().lower()
 
-    console.print(Panel.fit(
-        f"[bold cyan]Pinging[/bold cyan] [bold yellow]{host}[/bold yellow]\n"
-        f"[dim]Packets:[/dim] {count}   "
-        f"[dim]Timeout:[/dim] {timeout}s   "
-        f"[dim]OS:[/dim] {system}",
-        title="📡 Ping Tool",
-        border_style="cyan"
-    ))
+    console.print(f"  [dim]ping {host} ...[/dim]", end="")
 
     if system == "windows":
         cmd = ["ping", "-n", str(count), "-w", str(timeout * 1000), host]
@@ -82,56 +75,27 @@ def ping(host: str, count: int = 4, timeout: int = 3) -> Dict[str, Any]:
         bufsize=1
     )
 
-    with Progress(
-        SpinnerColumn(),
-        TextColumn("[progress.description]{task.description}"),
-        BarColumn(),
-        TextColumn("{task.completed}/{task.total}"),
-        console=console,
-    ) as progress:
-
-        task = progress.add_task("Sending ICMP packets...", total=count)
-
-        try:
-            for line in process.stdout:
-                line = line.strip()
-
-                latency_match = re.search(r"time[=<]\s*(\d+\.?\d*)\s*ms", line)
-
-                if latency_match:
-                    latency = float(latency_match.group(1))
-                    latencies.append(latency)
-                    replies += 1
-                    console.print(f"[green]✔ Reply[/green] {latency} ms")
-                    progress.advance(task)
-
-                elif "timed out" in line.lower():
-                    console.print("[red]✖ Request timed out[/red]")
-                    progress.advance(task)
-
-        except KeyboardInterrupt:
-            process.terminate()
-            console.print("\n[bold red]⛔ Ping cancelled by user[/bold red]")
+    try:
+        for line in process.stdout:
+            line = line.strip()
+            latency_match = re.search(r"time[=<]\s*(\d+\.?\d*)\s*ms", line)
+            if latency_match:
+                latency = float(latency_match.group(1))
+                latencies.append(latency)
+                replies += 1
+    except KeyboardInterrupt:
+        process.terminate()
 
     process.wait()
 
     packet_loss = int(((count - replies) / count) * 100)
     avg_latency = round(sum(latencies) / len(latencies), 2) if latencies else None
 
-    table = Table(title="📊 Ping Summary", show_header=False)
-    table.add_column("Metric", style="cyan")
-    table.add_column("Value", style="bold")
-
-    table.add_row("Host", host)
-    table.add_row("Packets Sent", str(count))
-    table.add_row("Replies", f"{replies}/{count}")
-    table.add_row("Packet Loss", f"{packet_loss}%")
-    table.add_row(
-        "Average Latency",
-        f"{avg_latency} ms" if avg_latency else "N/A"
-    )
-
-    console.print(table)
+    # Print clean one-liner result
+    if avg_latency is not None:
+        console.print(f" [green]{avg_latency}ms[/green] [dim]loss:{packet_loss}%[/dim]")
+    else:
+        console.print(f" [red]timeout[/red] [dim]loss:{packet_loss}%[/dim]")
 
     return {
         "host": host,
@@ -168,14 +132,7 @@ def traceroute(
 
     system = platform.system().lower()
 
-    console.print(Panel.fit(
-        f"[bold cyan]Tracing route[/bold cyan] [bold yellow]{host}[/bold yellow]\n"
-        f"[dim]Max Hops:[/dim] {maxHops}   "
-        f"[dim]Timeout:[/dim] {timeout}s   "
-        f"[dim]OS:[/dim] {system}",
-        title="📡 Traceroute Tool",
-        border_style="cyan"
-    ))
+    console.print(f"  [dim]traceroute {host} ...[/dim]")
 
     if system == "windows":
         cmd = ["tracert", "-d", "-h", str(maxHops), "-w", str(timeout * 1000), host]
@@ -194,70 +151,44 @@ def traceroute(
 
     hops: List[Dict[str, Any]] = []
 
-    table = Table(title="Traceroute Hops", show_lines=True)
-    table.add_column("Hop", justify="right")
-    table.add_column("IP Address", justify="left")
-    table.add_column("Latency (ms)", justify="left")
-    table.add_column("Status", justify="center")
-
     hop_regex = re.compile(r"^\s*(\d+)\s+(.+)$")
     ip_regex = re.compile(r"(\d+\.\d+\.\d+\.\d+)")
     latency_regex = re.compile(r"(\d+\.?\d*)\s*ms")
 
-    with Progress(
-        SpinnerColumn(),
-        TextColumn("[progress.description]{task.description}"),
-        console=console,
-    ) as progress:
+    for line in process.stdout:
+        line = line.strip()
+        match = hop_regex.match(line)
 
-        task = progress.add_task("Tracing route...", total=maxHops)
+        if not match:
+            continue
 
-        for line in process.stdout:
-            line = line.strip()
-            match = hop_regex.match(line)
+        hop_num = int(match.group(1))
+        rest = match.group(2)
 
-            if not match:
-                continue
+        ip_match = ip_regex.search(rest)
+        latencies = latency_regex.findall(rest)
 
-            hop_num = int(match.group(1))
-            rest = match.group(2)
+        if "*" in rest or not latencies:
+            hop_data = {
+                "hop": hop_num,
+                "ip": "*",
+                "latency_ms": [],
+                "status": "timeout"
+            }
+            console.print(f"  [dim]{hop_num}. * timeout[/dim]")
+        else:
+            hop_data = {
+                "hop": hop_num,
+                "ip": ip_match.group(1) if ip_match else "unknown",
+                "latency_ms": [float(x) for x in latencies],
+                "status": "ok"
+            }
+            avg = sum(float(x) for x in latencies) / len(latencies)
+            console.print(f"  [dim]{hop_num}. {hop_data['ip']} {avg:.1f}ms[/dim]")
 
-            ip_match = ip_regex.search(rest)
-            latencies = latency_regex.findall(rest)
-
-            if "*" in rest or not latencies:
-                hop_data = {
-                    "hop": hop_num,
-                    "ip": "*",
-                    "latency_ms": [],
-                    "status": "timeout"
-                }
-                table.add_row(
-                    str(hop_num),
-                    "*",
-                    "-",
-                    "[red]Timeout[/red]"
-                )
-            else:
-                hop_data = {
-                    "hop": hop_num,
-                    "ip": ip_match.group(1) if ip_match else "unknown",
-                    "latency_ms": [float(x) for x in latencies],
-                    "status": "ok"
-                }
-                table.add_row(
-                    str(hop_num),
-                    hop_data["ip"],
-                    ", ".join(latencies),
-                    "[green]OK[/green]"
-                )
-
-            hops.append(hop_data)
-            progress.advance(task)
+        hops.append(hop_data)
 
     process.wait()
-
-    console.print(table)
 
     return {
         "host": host,

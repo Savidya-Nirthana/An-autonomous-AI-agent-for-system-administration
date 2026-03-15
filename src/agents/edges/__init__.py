@@ -7,7 +7,7 @@ from src.agents.state import AgentState
 
 
 # The set of agent node names + END sentinel
-AgentName = Literal["filesystem", "network", "firewall", "monitoring", "admin", "FINISH"]
+AgentName = Literal["filesystem", "network", "firewall", "monitoring", "admin", "cmd", "FINISH"]
 
 
 def route_to_agent(state: AgentState) -> str:

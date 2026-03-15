@@ -31,9 +31,15 @@ _agent = create_react_agent(
 
 def filesystem_node(state: AgentState, config: RunnableConfig) -> dict:
     """Run the filesystem ReAct agent with clean message context."""
+    from cli.reasoning_ui import show_agent_start, show_agent_result
+
+    show_agent_start("filesystem")
     clean_msgs = build_agent_messages(state["messages"], state.get("task_context", {}))
     result = _agent.invoke({"messages": clean_msgs}, config=config)
     response = extract_final_response(result["messages"])
+
+    if response:
+        show_agent_result("filesystem", response)
 
     return {
         "messages": result["messages"],

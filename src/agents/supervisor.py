@@ -41,6 +41,7 @@ AVAILABLE AGENTS:
 - firewall → firewall status and security settings
 - monitoring → CPU, memory, disk usage
 - admin → answer questions using ONLY chat memory
+- cmd → execute any command without any agent call check the command is correct code like cd <directory> or ls or dir or mkdir <directory> or rmdir <directory> or touch <file> or rm <file> or cat <file> or echo <text> <file> or cp <file> <directory> or mv <file> <directory> etc. so these codes can be directly executed without using any agent.
 - FINISH → ALL tasks in the user's request are complete
 
 RULES:
@@ -94,10 +95,8 @@ def supervisor_node(state: AgentState) -> dict:
         routing_input = last_human
 
     # ── Call routing LLM with error recovery ─────────────────
-    from rich.console import Console
-    from rich.panel import Panel
-    from rich.text import Text
-    
+    from cli.reasoning_ui import show_routing_decision, show_finish, show_error
+
     try:
         prompt = ChatPromptTemplate.from_messages([
             SystemMessage(content=_SUPERVISOR_PROMPT.format(
@@ -108,25 +107,14 @@ def supervisor_node(state: AgentState) -> dict:
 
         chain = prompt | _get_llm() | _parser
         decision: RoutingDecision = chain.invoke({"input": routing_input})
-        
-        console = Console()
-        reasoning_text = Text()
-        reasoning_text.append("Agent Selected: ", style="bold cyan")
-        reasoning_text.append(f"{decision.agent}\n", style="bold green")
-        reasoning_text.append("Reasoning: ", style="bold cyan")
-        reasoning_text.append(f"{decision.reason}", style="italic yellow")
-        
-        panel = Panel(
-            reasoning_text, 
-            title="[bold magenta]Supervisor Routing Decision[/bold magenta]", 
-            border_style="cyan", 
-            expand=False
-        )
-        console.print(panel)
-        
+
+        if decision.agent == "FINISH":
+            show_finish()
+        else:
+            show_routing_decision(decision.agent, decision.reason)
+
         return {"next_agent": decision.agent}
 
     except Exception as e:
-        console = Console()
-        console.print(f"[bold red][Supervisor] routing error: {e}, finishing.[/bold red]")
+        show_error(f"Routing error: {e}, finishing.")
         return {"next_agent": "FINISH"}

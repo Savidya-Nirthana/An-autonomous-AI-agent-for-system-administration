@@ -1,0 +1,199 @@
+"""
+First-run setup wizard for ChatOps.
+
+On first launch:
+  1. Welcome screen
+  2. Ask user to choose an install/data location
+  3. Collect required API keys
+  4. Optionally create a Desktop shortcut
+  5. Save everything and launch the app
+
+On subsequent launches, this is skipped entirely.
+"""
+
+import os
+import sys
+from pathlib import Path
+from rich.console import Console
+from rich.panel import Panel
+from rich.prompt import Prompt, Confirm
+from rich.text import Text
+
+import paths  # paths module handles marker + data dir resolution
+
+console = Console()
+
+# The keys we absolutely need to run the app
+REQUIRED_KEYS = [
+    ("OPENROUTER_API_KEY", "OpenRouter API Key (for Chat Model)", "https://openrouter.ai/keys"),
+    ("GROQ_API_KEY",       "Groq API Key (for Router Model)",    "https://console.groq.com/keys"),
+]
+
+
+def _create_desktop_shortcut(exe_path: str, shortcut_name: str = "ChatOps"):
+    """Create a Desktop shortcut to the EXE (Windows only)."""
+    try:
+        import subprocess
+        desktop = Path(os.environ.get("USERPROFILE", Path.home())) / "Desktop"
+        shortcut_path = desktop / f"{shortcut_name}.lnk"
+
+        # Use PowerShell to create the shortcut
+        ps_script = f'''
+$ws = New-Object -ComObject WScript.Shell
+$sc = $ws.CreateShortcut("{shortcut_path}")
+$sc.TargetPath = "{exe_path}"
+$sc.WorkingDirectory = "{Path(exe_path).parent}"
+$sc.Description = "ChatOps - AI System Administration Agent"
+$sc.Save()
+'''
+        subprocess.run(
+            ["powershell", "-Command", ps_script],
+            capture_output=True, timeout=10
+        )
+        return True
+    except Exception:
+        return False
+
+
+def run_first_time_setup():
+    """Full setup wizard — runs only on first launch."""
+
+    # ── Check if setup is needed ──────────────────────────────
+    if not paths.is_first_run():
+        # Already configured — just ensure env vars are loaded
+        _load_existing_env()
+        return
+
+    # ══════════════════════════════════════════════════════════
+    #  STEP 1 — Welcome
+    # ══════════════════════════════════════════════════════════
+    console.print()
+    console.print(Panel(
+        "[bold cyan]Welcome to ChatOps![/bold cyan]\n\n"
+        "An autonomous AI agent for system administration.\n\n"
+        "[dim]This wizard will help you set up the application.\n"
+        "It only runs once — you can reconfigure later by deleting\n"
+        "the .env file in your data folder.[/dim]",
+        title="[bold yellow]⚡ ChatOps Setup Wizard[/bold yellow]",
+        border_style="cyan",
+        padding=(1, 4),
+    ))
+
+    # ══════════════════════════════════════════════════════════
+    #  STEP 2 — Choose install location
+    # ══════════════════════════════════════════════════════════
+    default_dir = paths._default_data_dir()
+
+    console.print()
+    console.print("[bold green]Step 1/3[/bold green] — [bold]Choose data location[/bold]")
+    console.print(f"[dim]This is where your API keys, chat memory, and settings are stored.[/dim]")
+    console.print(f"[dim]Default: {default_dir}[/dim]\n")
+
+    chosen = Prompt.ask(
+        "[bold]Install location[/bold]",
+        default=str(default_dir),
+    ).strip()
+
+    data_dir = Path(chosen)
+    try:
+        data_dir.mkdir(parents=True, exist_ok=True)
+    except (PermissionError, OSError) as e:
+        console.print(f"[bold red]Cannot create directory: {e}[/bold red]")
+        console.print(f"[yellow]Falling back to default: {default_dir}[/yellow]")
+        data_dir = default_dir
+        data_dir.mkdir(parents=True, exist_ok=True)
+
+    # Persist the chosen path
+    paths.save_install_path(data_dir)
+
+    # Update module-level constants so the rest of the app sees them
+    paths.USER_DATA_DIR = data_dir
+    paths.ENV_FILE = data_dir / ".env"
+    paths.QDRANT_DATA_DIR = data_dir / "qdrant_data"
+    paths.EXECUTIONS_DIR = data_dir / "executions"
+
+    console.print(f"[green]✓ Data will be stored in:[/green] {data_dir}\n")
+
+    # ══════════════════════════════════════════════════════════
+    #  STEP 3 — Collect API keys
+    # ══════════════════════════════════════════════════════════
+    console.print("[bold green]Step 2/3[/bold green] — [bold]API Keys[/bold]")
+    console.print("[dim]You need two API keys to use ChatOps. They're free to create.[/dim]\n")
+
+    env_lines = []
+    for key_name, description, url in REQUIRED_KEYS:
+        console.print(f"  [bold]{description}[/bold]")
+        console.print(f"  [dim]Get yours at: {url}[/dim]")
+        key_val = Prompt.ask(f"  [cyan]{key_name}[/cyan]")
+        if key_val.strip():
+            env_lines.append(f"{key_name}={key_val.strip()}")
+            os.environ[key_name] = key_val.strip()
+        console.print()
+
+    # Write .env file
+    env_file = data_dir / ".env"
+    with open(env_file, "w", encoding="utf-8") as f:
+        f.write("# ChatOps API Keys — auto-generated by setup wizard\n")
+        for line in env_lines:
+            f.write(line + "\n")
+
+    console.print(f"[green]✓ API keys saved to:[/green] {env_file}\n")
+
+    # ══════════════════════════════════════════════════════════
+    #  STEP 4 — Desktop shortcut (optional)
+    # ══════════════════════════════════════════════════════════
+    console.print("[bold green]Step 3/3[/bold green] — [bold]Desktop Shortcut[/bold]")
+
+    if getattr(sys, "frozen", False):
+        # Running as EXE
+        exe_path = sys.executable
+        create_shortcut = Confirm.ask(
+            "[cyan]Create a Desktop shortcut to ChatOps?[/cyan]",
+            default=True,
+        )
+        if create_shortcut:
+            if _create_desktop_shortcut(exe_path):
+                console.print("[green]✓ Desktop shortcut created![/green]\n")
+            else:
+                console.print("[yellow]⚠ Could not create shortcut. You can do it manually.[/yellow]\n")
+        else:
+            console.print("[dim]Skipped.[/dim]\n")
+    else:
+        console.print("[dim]Desktop shortcut is only available in the EXE version.[/dim]\n")
+
+    # ══════════════════════════════════════════════════════════
+    #  Done
+    # ══════════════════════════════════════════════════════════
+    # Create required subdirectories
+    (data_dir / "qdrant_data").mkdir(exist_ok=True)
+    (data_dir / "executions").mkdir(exist_ok=True)
+
+    console.print(Panel(
+        "[bold green]Setup Complete![/bold green]\n\n"
+        f"Data location:  [cyan]{data_dir}[/cyan]\n"
+        f"API keys:       [cyan]{env_file}[/cyan]\n"
+        f"Chat memory:    [cyan]{data_dir / 'qdrant_data'}[/cyan]\n\n"
+        "[dim]You can re-run setup by deleting the .env file.[/dim]",
+        title="[bold green]✓ Ready to Go[/bold green]",
+        border_style="green",
+        padding=(1, 3),
+    ))
+    console.print()
+
+
+def _load_existing_env():
+    """Load API keys from the existing .env into os.environ."""
+    env_file = paths.ENV_FILE
+    if env_file.exists():
+        with open(env_file, "r", encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if line and not line.startswith("#") and "=" in line:
+                    key, val = line.split("=", 1)
+                    key, val = key.strip(), val.strip()
+                    if val and key not in os.environ:
+                        os.environ[key] = val
+
+
+if __name__ == "__main__":
+    run_first_time_setup()

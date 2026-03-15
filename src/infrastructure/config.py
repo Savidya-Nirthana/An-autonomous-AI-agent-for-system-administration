@@ -22,14 +22,7 @@ from typing import Dict, Any, Optional
 import os 
 import yaml
 
-# ================================================
-# Project paths
-# ================================================
-
-
-# get project root (parent or src/infrastructure/)
-_PROJECT_ROOT = Path(__file__).parent.parent.parent
-_CONFIG_DIR = _PROJECT_ROOT / "config"
+from paths import BUNDLE_DIR, CONFIG_DIR as _CONFIG_DIR, USER_DATA_DIR
 
 
 # ================================================
@@ -162,7 +155,6 @@ def validate() -> None:
 
     Raises:
         ValueError: If required secrets are missing
-        OSError: If directories cannot be created
     """
     # Check required secrets based on provider
     api_key = get_api_key()
@@ -172,15 +164,6 @@ def validate() -> None:
             f"❌ Missing required secret: {key_name}\n"
             f"Please add it to your .env file."
         )
-
-    # Create required directories (only active ones)
-    required_dirs = [DATA_DIR, KB_DIR]
-
-    for dir_path in required_dirs:
-        try:
-            dir_path.mkdir(parents=True, exist_ok=True)
-        except (PermissionError, OSError) as e:
-            raise OSError(f"❌ Cannot create directory {dir_path}: {e}")
 
 
 def get_all_models() -> Dict[str, Any]:
