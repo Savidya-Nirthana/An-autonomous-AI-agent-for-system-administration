@@ -4,26 +4,27 @@
 =============================================================
 """
 
-# ── Allowed tool categories per role ──────────────────────────────────────────
-# Add or remove tool names from each list to grant/revoke access.
+# ── Allowed graph nodes (agents) per role ─────────────────────────────────────
 ROLE_PERMISSIONS: dict[str, list[str]] = {
     "root_admin": [
         "filesystem",
-        "filesystem_delete",
         "network",
-        "firewall_security",
-        "usage_monitoring",
+        "firewall",
+        "monitoring",
+        "admin",          # admin node — root_admin only
     ],
     "admin": [
         "filesystem",
         "network",
-        "firewall_security",
-        "usage_monitoring",
+        "firewall",
+        "monitoring",
+        # no "admin" node
     ],
     "user": [
         "filesystem",
         "network",
-        "usage_monitoring",
+        "monitoring",
+        # no "firewall" or "admin" node
     ],
 }
 
