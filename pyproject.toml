@@ -22,4 +22,5 @@ dependencies = [
     "uuid>=1.30",
     "langchain-openai>=1.1.10",
     "langgraph>=1.0.6",
+    "prompt-toolkit>=3.0.52",
 ]

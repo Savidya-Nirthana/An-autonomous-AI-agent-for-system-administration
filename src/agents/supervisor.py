@@ -45,8 +45,11 @@ AVAILABLE AGENTS:
 
 RULES:
 1. Route to the BEST agent for the user's request.
-2. If agents have already completed tasks and the request is fully handled, choose FINISH.
-3. For multi-part requests, route to the next needed agent.
+2. Review the "TASK CONTEXT" to see what previous agents have accomplished.
+3. EXTREMELY IMPORTANT: If the user's request was to perform an action (like creating a file, writing content, checking a ping) AND the "TASK CONTEXT" shows that the action was performed and a result was returned, you MUST choose FINISH immediately.
+4. DO NOT route to another agent to double-check, confirm, or verify information.
+5. DO NOT route to the "admin" agent unless the user EXPLICITLY asks a conversational question about chat memory.
+6. For multi-part requests, route to the next needed agent ONLY if there is a completely unaddressed part of the original request.
 
 {format_instructions}"""
 
@@ -73,16 +76,28 @@ def supervisor_node(state: AgentState) -> dict:
         return {"next_agent": "FINISH"}
 
     # ── Build routing input ──────────────────────────────────
+    task_context = state.get("task_context", {})
+    context_str = ""
+    if task_context:
+        context_str = "\nTASK CONTEXT (Results from previous agents):\n"
+        for k, v in task_context.items():
+            context_str += f"- {k}: {v}\n"
+
     if visited:
         routing_input = (
             f"ORIGINAL REQUEST: {last_human}\n"
             f"AGENTS ALREADY COMPLETED: {', '.join(visited)}\n"
-            f"Route to the next needed agent, or FINISH if done."
+            f"{context_str}"
+            f"Route to the next needed agent, or FINISH if the overall request is fully satisfied."
         )
     else:
         routing_input = last_human
 
     # ── Call routing LLM with error recovery ─────────────────
+    from rich.console import Console
+    from rich.panel import Panel
+    from rich.text import Text
+    
     try:
         prompt = ChatPromptTemplate.from_messages([
             SystemMessage(content=_SUPERVISOR_PROMPT.format(
@@ -93,9 +108,25 @@ def supervisor_node(state: AgentState) -> dict:
 
         chain = prompt | _get_llm() | _parser
         decision: RoutingDecision = chain.invoke({"input": routing_input})
-        print(f"[Supervisor] → {decision.agent} ({decision.reason})")
+        
+        console = Console()
+        reasoning_text = Text()
+        reasoning_text.append("Agent Selected: ", style="bold cyan")
+        reasoning_text.append(f"{decision.agent}\n", style="bold green")
+        reasoning_text.append("Reasoning: ", style="bold cyan")
+        reasoning_text.append(f"{decision.reason}", style="italic yellow")
+        
+        panel = Panel(
+            reasoning_text, 
+            title="[bold magenta]Supervisor Routing Decision[/bold magenta]", 
+            border_style="cyan", 
+            expand=False
+        )
+        console.print(panel)
+        
         return {"next_agent": decision.agent}
 
     except Exception as e:
-        print(f"[Supervisor] routing error: {e}, finishing.")
+        console = Console()
+        console.print(f"[bold red][Supervisor] routing error: {e}, finishing.[/bold red]")
         return {"next_agent": "FINISH"}
