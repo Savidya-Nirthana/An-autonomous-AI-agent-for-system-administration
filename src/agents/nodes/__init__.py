@@ -13,6 +13,7 @@ from .monitoring_node import monitoring_node
 from .admin_node import admin_node
 from .users_node import users_node
 from .helpers import build_agent_messages
+from .system_node import system_node
 
 __all__ = [
     "filesystem_node",
@@ -22,4 +23,5 @@ __all__ = [
     "admin_node",
     "users_node",
     "build_agent_messages",
+    "system_node"
 ]

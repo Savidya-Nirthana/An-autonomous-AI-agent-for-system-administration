@@ -10,6 +10,7 @@ class RoutingDecision(BaseModel):
         "firewall",
         "monitoring",
         "users",
+        "system",
         "FINISH"
     ]
 

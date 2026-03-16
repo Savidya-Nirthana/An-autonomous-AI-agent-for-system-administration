@@ -14,7 +14,9 @@ from src.agents.tools.usagemonitoring import (
     viewCPUfantemp, 
     viewDriveHealth, 
     viewHardwareSummary, 
-    viewUSBDevices
+    viewUSBDevices,
+    viewPCIInfomation,
+    viewCPUUtilization,
 )
 from .helpers import build_agent_messages, extract_final_response
 
@@ -25,7 +27,7 @@ _SYSTEM_PROMPT = (
     "Always run the tools to get fresh data — never reuse previous results."
 )
 
-_TOOLS = [cpu_usage, memory_usage, disk_usage, viewCPUfantemp, viewDriveHealth, viewHardwareSummary, viewUSBDevices]
+_TOOLS = [cpu_usage, memory_usage, disk_usage, viewCPUfantemp, viewDriveHealth, viewHardwareSummary, viewUSBDevices, viewPCIInfomation]
 
 _agent = create_react_agent(
     model=get_chat_llm(),

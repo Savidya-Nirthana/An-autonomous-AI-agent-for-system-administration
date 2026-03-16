@@ -6,11 +6,12 @@ from .tools.firewallmanagement import firewall_status
 from .tools.usagemonitoring import cpu_usage, memory_usage, disk_usage
 from .tools.filesystem_delete import delete_file_request, delete_file_confirm
 from .tools.usermanagement import add_user, delete_user, list_users, update_user
+from .tools.systemmanagement import update_packages, shutdown, restart, sync_time, view_uptime
 from .prompts.admin.admin_prompts import admin_system_prompt
 from .prompts.file_system.file_system import filesystem_prompt
 
 class AgentClient:
-    def __init__(self, llm, agent_name: Literal["filesystem", "admin", "genaral", "network", "networkandfile", "firewallandsecurity", "usagemonitoring"]):
+    def __init__(self, llm, agent_name: Literal["filesystem", "admin", "genaral", "network", "networkandfile", "firewallmanagement", "usagemonitoring"]):
         self.llm_client = llm
         self.agent_name = agent_name
 
@@ -44,7 +45,7 @@ class AgentClient:
                 system_prompt="You are a helpful assistant who can perform network operations and file operations",
             )
 
-        elif self.agent_name == "firewallandsecurity":
+        elif self.agent_name == "firewallmanagement":
             return create_agent(
                 model=self.llm_client,
                 tools=[firewall_status],
@@ -56,6 +57,13 @@ class AgentClient:
                 model=self.llm_client,
                 tools=[cpu_usage, memory_usage, disk_usage],
                 system_prompt="You are a helpful assistant who can perform usage monitoring (cpu, memory, disk space)",
+            )
+        
+        elif self.agent_name == "system":
+            return create_agent(
+                model=self.llm_client,
+                tools=[update_packages, shutdown, restart, sync_time, view_uptime],
+                system_prompt="You are a helpful assistant who can perform system operations",
             )
 
 

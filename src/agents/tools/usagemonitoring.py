@@ -210,10 +210,11 @@ def viewHardwareSummary() -> str:
             'ui_type':'Normal_window'
         }
 
+
+#tested with windowss
 @tool
 def viewUSBDevices() -> str:
     '''List USB devices in a tree hierarchy '''
-
     os = checkOS()
     try:
         if os == 'linux' or os == 'darwin':
@@ -240,6 +241,8 @@ def viewUSBDevices() -> str:
             'ui_type':'Normal_window'
         }
 
+
+#tested with windowss
 @tool
 def viewPCIInfomation() -> str:
     ''' List PCI devices with verbose machine-readable info'''
@@ -250,7 +253,7 @@ def viewPCIInfomation() -> str:
     
         elif os == 'windows':
             checkWMIC()
-            cmd = [] #need to find the command for this
+            cmd = ['wmic', 'path', 'Win32_PnPSignedDriver', 'get', 'DeviceName,Manufacturer,DeviceClass']
         else:
             return {
                 'sucess':False,

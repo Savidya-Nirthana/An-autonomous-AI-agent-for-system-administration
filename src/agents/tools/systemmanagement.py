@@ -2,14 +2,11 @@ import subprocess, sys
 from langchain.tools import tool
 from typing import Any, List, Dict, Optional
 from cli.checkOS import checkOS
-from utils.execution_log import log_execution
-from cli.request_admin_access import run_as_admin
-
 
 # testing process...
 
 @tool
-def updatePackages(package : List = ['all']) -> str :
+def updatePackages(package : List = ['all']) -> Dict :
     '''
     take package list if user given as a parameters and update those packages,
     if user dose not give any package list or a name,
@@ -40,15 +37,15 @@ def updatePackages(package : List = ['all']) -> str :
         
         }
 
-
-def shutdown(time:int = 0) -> str :
+#windows checked
+def shutdown(time:int = 0) -> Dict :
     '''shutdown the device at given time in seconds'''
     os = checkOS()
     try:
         if os == 'windows':
-            cmd = ['shutdown', '/r', '/t', time]
+            cmd = ['shutdown', '/s', '/t', str(time)]
         elif os == 'linux' or os == 'darwin':
-            cmd = ['shutdown', '-h', 'now'] #command need to be added for time 
+            cmd = ['shutdown', '-h', str(time)] #command need to be added for time 
     
         response = subprocess.run(cmd, capture_output=True, text=True)
         return {
@@ -63,22 +60,27 @@ def shutdown(time:int = 0) -> str :
             'ui_type':'Normal_window'
         }
 
-def restart(time:int = 0) -> str :
+#windows checked
+def restart(time:int = 0) -> Dict :
     '''shutdown the device at given time in seconds'''
     os = checkOS()
     try:
         if os == 'windows':
-            cmd = ['shutdown', '/s', '/t', time]
+            cmd = ['shutdown', '/r', '/t', str(time)]
+            print("cmdhello")
+            print()
         elif os == 'linux' or os == 'darwin':
-            cmd = ['reboot'] #command need to be added
+            cmd = ['shutdown', '-r', '+', str(time)] #command need to be added
     
-        response = subprocess.run(cmd, capture_output=True, text=true)
+        response = subprocess.run(cmd, capture_output=True, text=True)
+        print(response)
         return {
             'sucess':True,
             'result':response,
             'ui_type':'normal_window'
         }
     except Exception as e:
+        print(e)
         return {
             'sucess':False,
             'error':str(e),
@@ -88,7 +90,7 @@ def restart(time:int = 0) -> str :
 
 
 @tool
-def get_last_time_sync_details() -> str: 
+def get_last_time_sync_details() -> Dict: 
     """ get the last time sync details """
     """ if time is not sync recently or correctly this can cause unable to access some web sites like google, facebook and etc.."""
     try:
@@ -119,7 +121,7 @@ def get_last_time_sync_details() -> str:
         }
 
 @tool
-def sync_time() -> str: 
+def sync_time() -> Dict: 
     """ sync the time with correct time"""
     try:
         os = checkOS()
@@ -149,7 +151,7 @@ def sync_time() -> str:
         }
 
 @tool
-def viewUPTime() -> str:
+def viewUPTime() -> Dict:
     ''' Show how long the system has been running pretty printed'''
     os = checkOS()
     try:

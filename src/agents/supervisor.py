@@ -42,6 +42,7 @@ AVAILABLE AGENTS:
 - monitoring → CPU, memory, disk usage, hardware, connected devices, drives
 - admin → answer questions using ONLY chat memory
 - users → user management (create, delete, update, disable, enable, add/remove users from groups)
+- system → system operations (update packages, shutdown, restart, sync time, view uptime)
 - FINISH → ALL tasks in the user's request are complete
 
 RULES:

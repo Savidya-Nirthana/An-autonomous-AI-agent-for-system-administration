@@ -322,7 +322,34 @@ def read_file(path: str) -> Dict[str, Any]:
 
 
 #testing for file sharing
-
+# @tool
+# def viewUSBDevices() -> str:
+#     '''List USB devices in a tree hierarchy '''
+#     os = checkOS()
+#     try:
+#         if os == 'linux' or os == 'darwin':
+#             cmd = ['lsusb','-t'] 
+#         elif os == 'windows':
+#             checkWMIC()
+#             cmd = ['wmic', 'path', 'win32_usbcontrollerdevice', 'get', 'caption']
+#         else:
+#             return {
+#                 'sucess':False,
+#                 'error':'OS not supported',
+#                 'ui_type':'Normal_window'
+#             }
+#         response = subprocess.run(cmd, capture_output=True, text=True)
+#         return {
+#             'sucess':True,
+#             'result':response,
+#             'ui_type':'normal_window'
+#         } #better view this as a table
+#     except Exception as e:
+#         return {
+#             'sucess':False,
+#             'error':str(e),
+#             'ui_type':'Normal_window'
+#         }
 
 
 

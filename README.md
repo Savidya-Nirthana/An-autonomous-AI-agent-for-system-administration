@@ -83,7 +83,7 @@ ChatOps/
 │   │   │   ├── filesystem.py
 │   │   │   ├── filesystem_delete.py
 │   │   │   ├── network.py
-│   │   │   ├── firewallandsecurity.py
+│   │   │   ├── firewallmanagement.py
 │   │   │   └── usagemonitoring.py
 │   │   └── prompts/         # System prompts for each agent
 │   │       ├── admin/
@@ -219,15 +219,15 @@ All runtime behavior is controlled via two YAML files — **no code changes need
 
 ### `config/param.yaml`
 
-| Section     | Key                  | Description                          | Default       |
-|-------------|----------------------|--------------------------------------|---------------|
-| `provider`  | `default`            | LLM provider to use                  | `openrouter`  |
-| `provider`  | `tier`               | Model tier: `general`, `strong`, `reason` | `general` |
-| `llm`       | `temperature`        | Sampling temperature                 | `0.0`         |
-| `llm`       | `max_tokens`         | Max output tokens                    | `2000`        |
-| `embedding` | `tier`               | Embedding tier: `default` or `small` | `small`       |
-| `retrieval` | `top_k`              | Number of memory results to retrieve | `5`           |
-| `retrieval` | `similarity_threshold`| Min similarity for retrieval        | `0.7`         |
+| Section     | Key                    | Description                               | Default      |
+| ----------- | ---------------------- | ----------------------------------------- | ------------ |
+| `provider`  | `default`              | LLM provider to use                       | `openrouter` |
+| `provider`  | `tier`                 | Model tier: `general`, `strong`, `reason` | `general`    |
+| `llm`       | `temperature`          | Sampling temperature                      | `0.0`        |
+| `llm`       | `max_tokens`           | Max output tokens                         | `2000`       |
+| `embedding` | `tier`                 | Embedding tier: `default` or `small`      | `small`      |
+| `retrieval` | `top_k`                | Number of memory results to retrieve      | `5`          |
+| `retrieval` | `similarity_threshold` | Min similarity for retrieval              | `0.7`        |
 
 ### `config/models.yaml`
 
@@ -237,10 +237,10 @@ Defines available models per provider and tier. Example:
 openrouter:
   chat:
     general: google/gemini-2.5-flash
-    strong:  google/gemini-2.5-pro
+    strong: google/gemini-2.5-pro
   embedding:
     default: openai/text-embedding-3-large
-    small:   openai/text-embedding-3-small
+    small: openai/text-embedding-3-small
 ```
 
 Supported providers: **OpenRouter**, **OpenAI**, **Google**, **Anthropic**, **Groq**, **DeepSeek**.
@@ -249,33 +249,31 @@ Supported providers: **OpenRouter**, **OpenAI**, **Google**, **Anthropic**, **Gr
 
 ## 🤖 Specialized Agents
 
-| Agent                | Trigger Examples                              | Tools Available                                              |
-|----------------------|-----------------------------------------------|--------------------------------------------------------------|
-| **Filesystem**       | "create a folder", "list files", "delete log" | `make_dir`, `create_file`, `list_dir`, `delete_file`, etc.   |
-| **Network**          | "ping server", "trace route", "check port"    | `ping`, `traceroute`, `get_ip_address`, `tcp_port_check`     |
-| **Admin**            | General admin questions                       | LLM-only (no tools)                                          |
-| **Firewall**         | "firewall status", "security check"           | `firewall_status`                                            |
-| **Usage Monitoring** | "CPU usage", "memory stats", "disk space"     | `cpu_usage`, `memory_usage`, `disk_usage`                    |
-| **Network + File**   | Combined network & file tasks                 | All network + filesystem tools                               |
+| Agent                | Trigger Examples                              | Tools Available                                            |
+| -------------------- | --------------------------------------------- | ---------------------------------------------------------- |
+| **Filesystem**       | "create a folder", "list files", "delete log" | `make_dir`, `create_file`, `list_dir`, `delete_file`, etc. |
+| **Network**          | "ping server", "trace route", "check port"    | `ping`, `traceroute`, `get_ip_address`, `tcp_port_check`   |
+| **Admin**            | General admin questions                       | LLM-only (no tools)                                        |
+| **Firewall**         | "firewall status", "security check"           | `firewall_status`                                          |
+| **Usage Monitoring** | "CPU usage", "memory stats", "disk space"     | `cpu_usage`, `memory_usage`, `disk_usage`                  |
+| **Network + File**   | Combined network & file tasks                 | All network + filesystem tools                             |
 
 ---
 
 ## 🛠️ Tech Stack
 
-| Component        | Technology                                      |
-|------------------|-------------------------------------------------|
-| Language         | Python 3.13+                                    |
-| Agent Framework  | LangChain                                       |
-| LLM Providers   | OpenRouter, Google Gemini, OpenAI, Groq, Anthropic, DeepSeek |
-| Router Model     | Groq LLaMA 3.1-8B-Instant                      |
-| Vector Database  | Qdrant (Docker)                                 |
-| Embeddings       | OpenAI text-embedding-3-small / large           |
-| Terminal UI      | Rich, PyFiglet                                  |
-| Token Counting   | tiktoken                                        |
-| System Monitoring| psutil                                          |
-| Remote Access    | paramiko (SSH)                                  |
-| Package Manager  | uv                                              |
+| Component         | Technology                                                   |
+| ----------------- | ------------------------------------------------------------ |
+| Language          | Python 3.13+                                                 |
+| Agent Framework   | LangChain                                                    |
+| LLM Providers     | OpenRouter, Google Gemini, OpenAI, Groq, Anthropic, DeepSeek |
+| Router Model      | Groq LLaMA 3.1-8B-Instant                                    |
+| Vector Database   | Qdrant (Docker)                                              |
+| Embeddings        | OpenAI text-embedding-3-small / large                        |
+| Terminal UI       | Rich, PyFiglet                                               |
+| Token Counting    | tiktoken                                                     |
+| System Monitoring | psutil                                                       |
+| Remote Access     | paramiko (SSH)                                               |
+| Package Manager   | uv                                                           |
 
 ---
-
-
