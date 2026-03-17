@@ -39,9 +39,12 @@ AVAILABLE AGENTS & PRIORITIES:
 1. network → ALWAYS route here for IP settings, DNS settings, ping, tracert, ipconfig, winsock/tcp resets, ACTIVE PORTS, ARP CACHE, ROUTING TABLE, WIFI INTERFACES, or NETWORK ADAPTERS. Static IP/DNS configuration is ONLY for this agent.
 2. firewall → inspect firewall status, firewall rules, and security settings. This agent CANNOT configure IP or DNS addresses.
 3. filesystem → file/folder operations (create, delete, list, navigate), DISK REPAIR (chkdsk), and PERMISSION FIXES (icacls).
-4. monitoring → system health status (CPU, memory, disk usage %, processes), system details (OS/BIOS/uptime/user information/system logs), installed applications, and LISTING ALL INSTALLED DRIVERS. This agent also handles terminating/killing processes.
-5. admin → answer questions using ONLY chat memory. Use this for general talk.
-6. FINISH → ALL tasks in the user's request are complete.
+4. users → user management (create, delete, update, disable, enable, add/remove users from groups)
+5. system → system operations (update packages, shutdown, restart, sync time, view uptime)
+6. servers → creating web servers and SSH remote operations (connect/disconnect/test SSH connections, file upload/download via SCP, remote command execution on other PCs/servers, supports password and RSA key auth)
+7. monitoring → system health status (CPU, memory, disk usage %, processes), system details (OS/BIOS/uptime/user information/system logs), installed applications, and LISTING ALL INSTALLED DRIVERS. This agent also handles terminating/killing processes.
+8. admin → answer questions using ONLY chat memory. Use this for general talk.
+9. FINISH → ALL tasks in the user's request are complete.
 
 RULES:
 1. Route to the BEST agent for the user's request.

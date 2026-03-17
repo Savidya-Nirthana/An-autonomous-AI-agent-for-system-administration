@@ -13,12 +13,12 @@ from cli.take_admin_access import req_Admin_Access
 
 #working with windows
 @tool
-def createNewUser(names:List = 'user', password :str = "") -> Dict :
+def createNewUser(names:List , password :str = "") -> Dict :
     '''
         create an new user account with or without password
+        create user account for windows and linux
     '''
     try:
-
         os = checkOS()
         if os == 'windows':
 
@@ -214,7 +214,7 @@ def enableAccount(users:List) -> Dict:
 
 #working with windows
 @tool
-def deleteUser(user:str) -> Dict :
+def deleteUser(user:List) -> Dict :
     '''
         delete a user account
     '''
