@@ -78,6 +78,10 @@ def show_final_response(response: str):
     """Show the final AI response — this IS the output, so it's normal text."""
     console.print(f"\n{response}\n")
 
+def show_stream_token(token: str):
+    """Print an individual token to the console as it arrives."""
+    console.print(token, end="", markup=False)
+
 def show_execution_time(seconds: float):
     """Show the overall execution time for the user's prompt."""
-    console.print(f"  [dim italic]⏱️ Total execution time: {seconds:.2f}s[/dim italic]\n")
+    console.print(f"\n  [dim italic]⏱️ Total execution time: {seconds:.2f}s[/dim italic]\n")

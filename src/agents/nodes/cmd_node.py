@@ -21,7 +21,14 @@ def cmd_node(state: AgentState) -> dict:
     if not messages:
         return {"next_agent": "FINISH"}
 
-    user_input = messages[-1].content.strip()
+    # Find the last human message to execute as a command
+    last_human = ""
+    for msg in reversed(messages):
+        if hasattr(msg, "type") and msg.type == "human" or getattr(msg, "__class__", None).__name__ == "HumanMessage":
+            last_human = msg.content
+            break
+            
+    user_input = last_human.strip()
     result_text = ""
 
     # Special handling for 'cd' which must change the process's working directory
