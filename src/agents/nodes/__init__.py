@@ -14,6 +14,7 @@ from .admin_node import admin_node
 from .users_node import users_node
 from .helpers import build_agent_messages
 from .system_node import system_node
+from .servers_node import servers_node
 
 __all__ = [
     "filesystem_node",
@@ -23,5 +24,6 @@ __all__ = [
     "admin_node",
     "users_node",
     "build_agent_messages",
-    "system_node"
+    "system_node",
+    "servers_node",
 ]

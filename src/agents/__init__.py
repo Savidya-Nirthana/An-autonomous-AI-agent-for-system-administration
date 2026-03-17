@@ -13,6 +13,8 @@ from .tools.firewallmanagement import *
 from .tools.usagemonitoring import *
 from .tools.usermanagement import *
 
+from .tools.servers import *
+
 __all__ = [
     "chatops_graph",
     # filesystem tools
@@ -36,4 +38,14 @@ __all__ = [
     "cpu_usage",
     "memory_usage",
     "disk_usage",
+    # server / SSH tools
+    "webserver",
+    "ssh_connect_password",
+    "ssh_disconnect",
+    # "ssh_upload_file_password",
+    # "ssh_upload_file_rsa",
+    # "ssh_download_file_password",
+    # "ssh_download_file_rsa",
+    # "ssh_execute_command_password",
+    # "ssh_execute_command_rsa",
 ]

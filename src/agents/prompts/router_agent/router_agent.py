@@ -11,6 +11,7 @@ AGENTS:
 - systemmanagement → system management operations
 - usermanagement → user management operations
 - usagemanagement → system and hardware usage operations
+- servers → SSH remote operations and web server creation and management and make folders into servers , RSA related tasks
 - admin → meta-level questions or explanations that MUST rely only on chat memory
 - FINISH → use this when the conversation is done or the user says goodbye
 

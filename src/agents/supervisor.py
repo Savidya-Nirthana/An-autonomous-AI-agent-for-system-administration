@@ -43,6 +43,7 @@ AVAILABLE AGENTS:
 - admin → answer questions using ONLY chat memory
 - users → user management (create, delete, update, disable, enable, add/remove users from groups)
 - system → system operations (update packages, shutdown, restart, sync time, view uptime)
+- servers → creating web servers and SSH remote operations (connect/disconnect/test SSH connections, file upload/download via SCP, remote command execution on other PCs/servers, supports password and RSA key auth)
 - FINISH → ALL tasks in the user's request are complete
 
 RULES:

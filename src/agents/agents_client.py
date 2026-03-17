@@ -7,6 +7,7 @@ from .tools.usagemonitoring import cpu_usage, memory_usage, disk_usage
 from .tools.filesystem_delete import delete_file_request, delete_file_confirm
 from .tools.usermanagement import add_user, delete_user, list_users, update_user
 from .tools.systemmanagement import update_packages, shutdown, restart, sync_time, view_uptime
+from .tools.servers import create_web_server, scp_file_upload, scp_file_download, remote_command_execution
 from .prompts.admin.admin_prompts import admin_system_prompt
 from .prompts.file_system.file_system import filesystem_prompt
 
@@ -64,6 +65,13 @@ class AgentClient:
                 model=self.llm_client,
                 tools=[update_packages, shutdown, restart, sync_time, view_uptime],
                 system_prompt="You are a helpful assistant who can perform system operations",
+            )
+       
+        elif self.agent_name == "servers":
+            return create_agent(
+                model=self.llm_client,
+                tools=[create_web_server, scp_file_upload, scp_file_download, remote_command_execution],
+                system_prompt="You are a helpful assistant who can perform server operations and ssh related operations",
             )
 
 
