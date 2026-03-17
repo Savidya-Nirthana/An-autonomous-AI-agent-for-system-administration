@@ -36,7 +36,7 @@ from cli.cli_functions import (
     pending_message,
     welcome_banner,
     welcome_msg,
-    run_as_admin
+    # run_as_admin
 )
 
 # ── Memory (Qdrant vector store) ──────────────────────────────────────────────
@@ -55,8 +55,8 @@ def main() -> None:
     init_db()
 
     # ── 1.5. Run as admin if on Windows ────────────────────────────────────────
-    if sys.platform == "win32":
-        run_as_admin()
+    # if sys.platform == "win32":
+    #     run_as_admin()
 
     # ── 2. ASCII banner ───────────────────────────────────────────────────────
     welcome_banner()

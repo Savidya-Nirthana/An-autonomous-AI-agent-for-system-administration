@@ -12,6 +12,7 @@ import sys
 import time
 import uuid
 import ctypes
+import platform
 from typing import Optional
 
 import pyfiglet
@@ -64,6 +65,109 @@ def welcome_msg() -> None:
     console.print(panel)
 
 
+#----system administrator-------
+def is_windows() -> bool:
+    return platform.system() == "Windows"
+
+
+def is_elevated() -> bool:
+    """Check if the current process is running with Administrator privileges."""
+    if not is_windows():
+        # On Linux/macOS, check for root (uid 0) — analogous to sudo
+        return os.getuid() == 0
+    try:
+        return ctypes.windll.shell32.IsUserAnAdmin() != 0
+    except Exception:
+        return False
+
+
+def requires_elevation(user: "User") -> bool:
+    """Return True if this role requires elevated privileges."""
+    from auth import UserRole
+    return user.role in (UserRole.admin, UserRole.root_admin)
+
+
+def elevate_if_needed(user: "User") -> None:
+    """
+    If the user's role requires elevation and the process is not yet elevated,
+    re-launch this script as Administrator (Windows UAC) or with sudo (Unix).
+    Exits the current (unelevated) process after spawning the elevated one.
+    """
+    if not requires_elevation(user):
+        return  # Regular users: no elevation needed or allowed
+
+    if is_elevated():
+        console.print(
+            f"[bold green]✓ Running as Administrator "
+            f"(elevated privileges active)[/bold green]"
+        )
+        return  # Already elevated — carry on
+
+    # ── Not elevated yet ──────────────────────────────────────────────────────
+    console.print(
+        f"\n[bold yellow]⚠  Role '[cyan]{user.role.value}[/cyan]' requires "
+        f"elevated (Administrator) privileges.[/bold yellow]"
+    )
+
+    if is_windows():
+        _elevate_windows()
+    else:
+        _elevate_unix()
+
+
+def _elevate_windows() -> None:
+    """Re-launch via Windows UAC ShellExecute runas verb."""
+    import ctypes
+
+    console.print(
+        "[bold cyan]A UAC prompt will appear. "
+        "Please click 'Yes' to continue as Administrator.[/bold cyan]\n"
+    )
+    time.sleep(1)
+
+    # Rebuild the exact command line used to start this process
+    script = os.path.abspath(sys.argv[0])
+    params  = " ".join(f'"{a}"' for a in sys.argv[1:])
+
+    ret = ctypes.windll.shell32.ShellExecuteW(
+        None,       # hwnd
+        "runas",    # verb  ← this triggers the UAC dialog
+        sys.executable,
+        f'"{script}" {params}'.strip(),
+        None,       # working directory (inherit)
+        1,          # SW_NORMAL
+    )
+
+    if ret <= 32:
+        # ShellExecute returns ≤32 on failure
+        console.print(
+            "[bold red]UAC elevation failed or was denied "
+            f"(code {ret}). Exiting.[/bold red]"
+        )
+        sys.exit(1)
+
+    # The elevated copy is now starting — exit this unelevated instance
+    console.print("[yellow]Elevated process launched. This window will close.[/yellow]")
+    sys.exit(0)
+
+
+def _elevate_unix() -> None:
+    """Re-launch under sudo on Linux / macOS."""
+    console.print(
+        "[bold cyan]Relaunching with sudo — enter your system password "
+        "if prompted.[/bold cyan]\n"
+    )
+    time.sleep(0.5)
+
+    cmd = ["sudo", sys.executable] + sys.argv
+    try:
+        os.execvp("sudo", cmd)   # replaces current process — no sys.exit needed
+    except FileNotFoundError:
+        console.print("[bold red]'sudo' not found. Cannot elevate.[/bold red]")
+        sys.exit(1)
+
+
+
 # ── Login ─────────────────────────────────────────────────────────────────────
 
 def login_form() -> Optional[str]:
@@ -104,6 +208,10 @@ def login_form() -> Optional[str]:
         current_session_id = session_id
         clear_console()
         _print_role_banner(current_user)
+
+        # ── NEW: elevate immediately after successful login ────────────────
+        elevate_if_needed(current_user)   # ← add this
+
         return session_id
 
     except KeyboardInterrupt:
@@ -402,23 +510,23 @@ def clear_console() -> None:
 
 # ── Windows-specific helpers (Windows Administrator Privileges) ────────────────────────────────────────────────
 
-def run_as_admin():
-    try:
-        # Check if already admin
-        if ctypes.windll.shell32.IsUserAnAdmin():
-            return True
+# def run_as_admin():
+#     try:
+#         # Check if already admin
+#         if ctypes.windll.shell32.IsUserAnAdmin():
+#             return True
 
-        # Relaunch as admin
-        ctypes.windll.shell32.ShellExecuteW(
-            None,
-            "runas",                # <-- triggers UAC
-            sys.executable,         # python executable
-            " ".join(sys.argv),     # current script args
-            None,
-            1
-        )
-        sys.exit()  # kill current process
+#         # Relaunch as admin
+#         ctypes.windll.shell32.ShellExecuteW(
+#             None,
+#             "runas",                # <-- triggers UAC
+#             sys.executable,         # python executable
+#             " ".join(sys.argv),     # current script args
+#             None,
+#             1
+#         )
+#         sys.exit()  # kill current process
 
-    except Exception as e:
-        print(f"Failed to elevate: {e}")
-        sys.exit(1)
+#     except Exception as e:
+#         print(f"Failed to elevate: {e}")
+#         sys.exit(1)
