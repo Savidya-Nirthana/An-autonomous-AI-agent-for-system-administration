@@ -13,6 +13,9 @@ from .monitoring_node import monitoring_node
 from .admin_node import admin_node
 from .cmd_node import cmd_node
 from .knowledge_node import knowledge_node
+from .servers_node import servers_node
+from .system_node import system_node
+from .users_node import users_node
 from .helpers import build_agent_messages
 
 __all__ = [
@@ -23,5 +26,8 @@ __all__ = [
     "admin_node",
     "cmd_node",
     "knowledge_node",
+    "servers_node",
+    "system_node",
+    "users_node",
     "build_agent_messages",
 ]

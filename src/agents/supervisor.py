@@ -40,6 +40,9 @@ AVAILABLE AGENTS:
 - network → ping, traceroute, IP lookup, port check
 - firewall → firewall status and security settings
 - monitoring → CPU, memory, disk usage
+- servers → SSH connections, reverse proxies, start simple HTTP webserver
+- system → package managers, reboots, time sync, server uptime
+- users → create, modify, disable, and manage local OS users and groups
 - admin → answer questions using ONLY chat memory
 - knowledge → answer general knowledge questions, generate text/code, or provide explanations that do NOT require system tools
 - cmd → execute STRICTLY FORMATTED terminal commands (e.g., `ls`, `cd /tmp`, `mkdir new_folder`). DO NOT route natural language requests (e.g., "update a file by adding...") to 'cmd'. If the request is conversational or needs reasoning, use 'filesystem' or another agent. 'cmd' does NOT understand natural language.

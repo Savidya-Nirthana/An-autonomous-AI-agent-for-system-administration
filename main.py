@@ -11,14 +11,14 @@ paths.EXECUTIONS_DIR = paths.USER_DATA_DIR / "executions"
 
 load_dotenv(dotenv_path=str(paths.ENV_FILE))
 
-import os
-os.chdir(os.path.expanduser("~"))
-
 from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
 from src.agents.graph import chatops_graph
 from src.utils.memory_store import save_chat_memory, load_chat_memory
 from core.tool_parser import extract_tool_ui
 from core.tool_router_ui import render_ui
+
+import os
+os.chdir(os.path.expanduser("~"))
 
 from cli.cli_functions import (
     welcome_banner,
@@ -31,11 +31,35 @@ from cli.reasoning_ui import reset_steps, show_final_response, show_stream_token
 import time
 import asyncio
 
-welcome_banner()
-session_id = login_form()
+import argparse
+from auth.models import Session as DBSession, User as DBUser, SessionLocal
+import cli.cli_functions
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--session_id", type=str, default=None, help="Resume an existing session")
+args, unknown = parser.parse_known_args()
+
+session_id = args.session_id
 
 if not session_id:
-    exit()
+    welcome_banner()
+    session_id = login_form()
+    
+    if not session_id:
+        exit()
+else:
+    # Resuming session from an elevated process restart
+    db = SessionLocal()
+    sess = db.query(DBSession).filter_by(session_id=session_id).first()
+    if not sess:
+        print("Invalid session ID for elevation resumption. Exiting.")
+        exit()
+    user = db.query(DBUser).filter_by(id=sess.user_id).first()
+    db.expunge(user)
+    db.close()
+    
+    cli.cli_functions.current_session_id = session_id
+    cli.cli_functions.current_user = user
 
 welcome_msg()
 

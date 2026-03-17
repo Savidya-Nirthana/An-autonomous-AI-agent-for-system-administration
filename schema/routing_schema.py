@@ -11,6 +11,9 @@ class RoutingDecision(BaseModel):
         "monitoring",
         "cmd",
         "knowledge",
+        "servers",
+        "system",
+        "users",
         "FINISH"
     ]
 
