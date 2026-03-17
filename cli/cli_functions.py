@@ -125,6 +125,7 @@ def elevate_if_needed(user: "User") -> None:
 
 def _elevate_windows() -> None:
     import ctypes
+    import paths
 
     console.print(
         "[bold cyan]A UAC prompt will appear. "
@@ -132,7 +133,10 @@ def _elevate_windows() -> None:
     )
     time.sleep(1)
 
-    script = os.path.abspath(sys.argv[0])
+    # Use BUNDLE_DIR for the correct project root — os.path.abspath(sys.argv[0])
+    # is unreliable because os.chdir() may have changed the CWD to the home dir.
+    project_dir = str(paths.BUNDLE_DIR)
+    script = str(paths.BUNDLE_DIR / "main.py")
 
     # Build args without any existing --session_id
     old_args = []
@@ -147,17 +151,20 @@ def _elevate_windows() -> None:
             continue
         old_args.append(a)
 
-    # Pass session_id via env var instead — it's available before login completes
     args = f'"{script}"'
     if old_args:
         args += " " + " ".join(f'"{a}"' for a in old_args)
+
+    # Pass session_id so the elevated process resumes the authenticated session
+    if current_session_id:
+        args += f' --session_id {current_session_id}'
 
     ret = ctypes.windll.shell32.ShellExecuteW(
         None,
         "runas",
         sys.executable,   # ← python.exe directly, NOT cmd.exe
         args,
-        os.getcwd(),      # ← Provide the current working directory
+        project_dir,      # Use the project directory, not os.getcwd()
         1,
     )
 
@@ -173,13 +180,20 @@ def _elevate_windows() -> None:
 
 def _elevate_unix() -> None:
     """Re-launch under sudo on Linux / macOS."""
+    import paths
+
     console.print(
         "[bold cyan]Relaunching with sudo — enter your system password "
         "if prompted.[/bold cyan]\n"
     )
     time.sleep(0.5)
 
-    cmd = ["sudo", sys.executable] + sys.argv
+    script = str(paths.BUNDLE_DIR / "main.py")
+    extra_args = []
+    if current_session_id:
+        extra_args = ["--session_id", current_session_id]
+
+    cmd = ["sudo", sys.executable, script] + extra_args
     try:
         os.execvp("sudo", cmd)   # replaces current process — no sys.exit needed
     except FileNotFoundError:

@@ -27,7 +27,7 @@ from cli.cli_functions import (
     get_requests,
     pending_message,
 )
-from cli.reasoning_ui import reset_steps, show_final_response, show_stream_token, show_execution_time
+from cli.reasoning_ui import reset_steps, show_final_response, show_stream_token, show_execution_time, stop_reasoning
 import time
 import asyncio
 
@@ -110,6 +110,8 @@ async def main_loop():
         reset_steps()
 
         response = ""
+        llm_response = ""
+        _streaming_started = False
         print("\n", end="")
 
         async for event in chatops_graph.astream_events(
@@ -129,10 +131,20 @@ async def main_loop():
             },
         ):
             kind = event["event"]
-            
+            tags = event.get("tags", [])
+
             if kind == "on_chat_model_stream":
+                # Skip streaming tokens from the supervisor/router LLM
+                # (it emits JSON routing decisions, not human-readable text)
+                is_supervisor = any("supervisor" in t for t in tags)
+                if is_supervisor:
+                    continue
+
                 content = event["data"]["chunk"].content
                 if content:
+                    if not _streaming_started:
+                        stop_reasoning()
+                        _streaming_started = True
                     show_stream_token(str(content))
                     response += str(content)
             
@@ -140,7 +152,14 @@ async def main_loop():
                 result = event["data"]["output"]
                 tool_ui = extract_tool_ui(result.get("messages", []))
                 
+                # Extract the final text response from the LLM
+                for msg in reversed(result.get("messages", [])):
+                    if isinstance(msg, AIMessage) and msg.content and not getattr(msg, "tool_calls", None):
+                        llm_response = msg.content
+                        break
+
                 if tool_ui:
+                    stop_reasoning()
                     render_ui(tool_ui)
 
                 if isinstance(tool_ui, list) and tool_ui:
@@ -148,19 +167,30 @@ async def main_loop():
                 else:
                     set_pending = False
 
-        if not response:
-             show_final_response("Task completed.")
+        stop_reasoning()
+
+        # Show the LLM's final response if it wasn't already streamed
+        if llm_response and not _streaming_started:
+            show_final_response(llm_response)
+        elif not response and not llm_response:
+            show_final_response("Task completed.")
 
         total_time = time.time() - start_time
         show_execution_time(total_time)
 
-        save_chat_memory(session_id, prompt, response or "Task completed.")
+        save_chat_memory(session_id, prompt, response or llm_response or "Task completed.")
 
 if __name__ == "__main__":
     try:
-        loop = asyncio.get_event_loop()
-    except RuntimeError:
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-    
-    loop.run_until_complete(main_loop())
+        try:
+            loop = asyncio.get_event_loop()
+        except RuntimeError:
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+
+        loop.run_until_complete(main_loop())
+    except Exception as exc:
+        import traceback
+        print(f"\n[FATAL ERROR] {exc}")
+        traceback.print_exc()
+        input("\nPress Enter to exit...")

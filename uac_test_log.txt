@@ -1,0 +1,3 @@
+Test started
+Elevating...
+ShellExecuteW returned 42

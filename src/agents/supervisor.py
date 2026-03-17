@@ -35,31 +35,28 @@ _parser = PydanticOutputParser(pydantic_object=RoutingDecision)
 # ── Supervisor prompt ────────────────────────────────────────────────
 _SUPERVISOR_PROMPT = """You are a ROUTING SUPERVISOR for a system-administration chatbot.
 
-AVAILABLE AGENTS:
-- filesystem → file/folder operations (create, delete, list, navigate)
-- network → ping, traceroute, IP lookup, port check
-- firewall → firewall status and security settings
-- monitoring → CPU, memory, disk usage
-- servers → SSH connections, reverse proxies, start simple HTTP webserver
-- system → package managers, reboots, time sync, server uptime
-- users → create, modify, disable, and manage local OS users and groups
-- admin → answer questions using ONLY chat memory
-- knowledge → answer general knowledge questions, generate text/code, or provide explanations that do NOT require system tools
-- cmd → execute STRICTLY FORMATTED terminal commands (e.g., `ls`, `cd /tmp`, `mkdir new_folder`). DO NOT route natural language requests (e.g., "update a file by adding...") to 'cmd'. If the request is conversational or needs reasoning, use 'filesystem' or another agent. 'cmd' does NOT understand natural language.
-- FINISH → ALL tasks in the user's request are complete
+AVAILABLE AGENTS & PRIORITIES:
+1. network → ALWAYS route here for IP settings, DNS settings, ping, tracert, ipconfig, winsock/tcp resets, ACTIVE PORTS, ARP CACHE, ROUTING TABLE, WIFI INTERFACES, or NETWORK ADAPTERS. Static IP/DNS configuration is ONLY for this agent.
+2. firewall → inspect firewall status, firewall rules, and security settings. This agent CANNOT configure IP or DNS addresses.
+3. filesystem → file/folder operations (create, delete, list, navigate), DISK REPAIR (chkdsk), and PERMISSION FIXES (icacls).
+4. monitoring → system health status (CPU, memory, disk usage %, processes), system details (OS/BIOS/uptime/user information/system logs), installed applications, and LISTING ALL INSTALLED DRIVERS. This agent also handles terminating/killing processes.
+5. admin → answer questions using ONLY chat memory. Use this for general talk.
+6. FINISH → ALL tasks in the user's request are complete.
 
 RULES:
 1. Route to the BEST agent for the user's request.
 2. Review the "TASK CONTEXT" to see what previous agents have accomplished.
-3. For multi-part requests (e.g., "Find my IP and save it to a file"), you MUST route to the agents sequentially. If one part is done (e.g., IP found in TASK CONTEXT), route to the next agent (e.g., filesystem to save it).
-4. DO NOT route to another agent to just double-check, confirm, or verify information. Only route to another agent if there is an unfulfilled sub-task.
-5. DO NOT route to the "admin" agent unless the user EXPLICITLY asks a conversational question about chat memory.
-6. If an agent failed or returned an error, you may try a DIFFERENT agent, but DO NOT route to the same agent again. If 'cmd' failed, it is likely because the user's request was not a valid shell command; use an LLM-based agent instead or FINISH.
-7. CRITICAL: If the user's request was PURELY a terminal command (like `cd ...`, `ls`, etc.), and the 'cmd' agent has executed it, you MUST choose FINISH. DO NOT hallucinate extra tasks.
-8. If the ENTIRE user request is complete based on the TASK CONTEXT, choose FINISH.
+3. EXTREMELY IMPORTANT: If the "TASK CONTEXT" contains a "monitoring_result" key, the monitoring agent has already run and returned data. You MUST choose FINISH immediately — do NOT route to monitoring again.
+4. EXTREMELY IMPORTANT: If the user's request was to perform an action (like creating a file, writing content, checking a ping, listing processes) AND the "TASK CONTEXT" shows that the action was performed and a result was returned, you MUST choose FINISH immediately. This applies even if the agent reports an "Ambiguous" result or minor error.
+5. DO NOT route to another agent to double-check, confirm, or verify information.
+6. DO NOT route to the "admin" agent unless the user EXPLICITLY asks a conversational question about chat memory.
+7. For multi-part requests, route to the next needed agent ONLY if there is a completely unaddressed part of the original request.
+8. [CRITICAL] Do NOT route networking requests (IP, DNS, configuration) to the firewall agent.
+9. [CRITICAL] Do NOT route networking requests to the filesystem agent.
 
+OUTPUT FORMAT:
+You must return ONLY a valid JSON object matching this schema. Do not return the schema itself, return the actual JSON object with your true values filled in. Do NOT wrap it in markdown block quotes (```json).
 {format_instructions}"""
-
 
 def supervisor_node(state: AgentState) -> dict:
     """
@@ -70,6 +67,11 @@ def supervisor_node(state: AgentState) -> dict:
 
     # ── Safety: hard cap on agent steps ──────────────────────
     if len(visited) >= MAX_AGENT_STEPS:
+        return {"next_agent": "FINISH"}
+
+    # ── Hard exit: monitoring already ran and returned a result ──
+    task_context = state.get("task_context", {})
+    if "monitoring" in visited and task_context.get("monitoring_result"):
         return {"next_agent": "FINISH"}
 
     # ── Find latest user message ─────────────────────────────
@@ -83,7 +85,6 @@ def supervisor_node(state: AgentState) -> dict:
         return {"next_agent": "FINISH"}
 
     # ── Build routing input ──────────────────────────────────
-    task_context = state.get("task_context", {})
     context_str = ""
     if task_context:
         context_str = "\nTASK CONTEXT (Results from previous agents):\n"
@@ -101,8 +102,12 @@ def supervisor_node(state: AgentState) -> dict:
         routing_input = last_human
 
     # ── Call routing LLM with error recovery ─────────────────
-    from cli.reasoning_ui import show_routing_decision, show_finish, show_error
-
+    from rich.console import Console
+    from rich.panel import Panel
+    from rich.text import Text
+    import json
+    import re
+    
     try:
         prompt = ChatPromptTemplate.from_messages([
             SystemMessage(content=_SUPERVISOR_PROMPT.format(
@@ -111,16 +116,52 @@ def supervisor_node(state: AgentState) -> dict:
             ("human", "{input}"),
         ])
 
-        chain = prompt | _get_llm() | _parser
-        decision: RoutingDecision = chain.invoke({"input": routing_input})
+        # We separate the llm call and parser to allow manual JSON cleanup if it fails
+        llm = _get_llm()
+        raw_response = (prompt | llm).invoke({"input": routing_input}).content
+        
+        try:
+            decision = _parser.invoke(raw_response)
+        except Exception as parse_err:
+            # Fallback: manually strip bad LLM JSON markdown wrapper and try parsing again
+            cleaned_json = re.sub(r'```json\n|```\n|```', '', raw_response).strip()
+            
+            # Robustify: Escape single backslashes in the reason string (common in Windows names)
+            # This looks for a backslash NOT followed by valid JSON escape chars
+            cleaned_json = re.sub(r'\\(?![\\/bfnrtu"])', r'\\\\', cleaned_json)
 
-        if decision.agent == "FINISH":
-            show_finish()
-        else:
-            show_routing_decision(decision.agent, decision.reason)
-
+            try:
+                # If the LLM literally returned schema properties instead of values, default to admin
+                if '"properties":' in cleaned_json or '"type": "string"' in cleaned_json:
+                    decision = RoutingDecision(agent="admin", reason="Fallback after LLM returned schema instead of JSON.")
+                else:
+                    data = json.loads(cleaned_json)
+                    decision = RoutingDecision(**data)
+            except Exception:
+                # If still failing, check if it's a finish-like response
+                if "FINISH" in raw_response.upper():
+                    decision = RoutingDecision(agent="FINISH", reason="Fallback FINISH due to parsing error.")
+                else:
+                    raise parse_err
+        
+        console = Console()
+        reasoning_text = Text()
+        reasoning_text.append("Agent Selected: ", style="bold cyan")
+        reasoning_text.append(f"{decision.agent}\n", style="bold green")
+        reasoning_text.append("Reasoning: ", style="bold cyan")
+        reasoning_text.append(f"{decision.reason}", style="italic yellow")
+        
+        panel = Panel(
+            reasoning_text, 
+            title="[bold magenta]Supervisor Routing Decision[/bold magenta]", 
+            border_style="cyan", 
+            expand=False
+        )
+        console.print(panel)
+        
         return {"next_agent": decision.agent}
 
     except Exception as e:
-        show_error(f"Routing error: {e}, finishing.")
+        console = Console()
+        console.print(f"[bold red][Supervisor] routing error: {e}, finishing.[/bold red]")
         return {"next_agent": "FINISH"}
