@@ -115,8 +115,46 @@ def elevate_if_needed(user: "User") -> None:
         _elevate_unix()
 
 
+# def _elevate_windows() -> None:
+#     """Re-launch via Windows UAC ShellExecute runas verb."""
+#     import ctypes
+
+#     console.print(
+#         "[bold cyan]A UAC prompt will appear. "
+#         "Please click 'Yes' to continue as Administrator.[/bold cyan]\n"
+#     )
+#     time.sleep(1)
+
+#     # Rebuild the exact command line used to start this process
+#     script = os.path.abspath(sys.argv[0])
+#     params  = " ".join(f'"{a}"' for a in sys.argv[1:])
+
+#     ret = ctypes.windll.shell32.ShellExecuteW(
+#         None,       # hwnd
+#         "runas",    # verb  ← this triggers the UAC dialog
+#         sys.executable,
+#         f'"{script}" {params}'.strip(),
+#         None,       # working directory (inherit)
+#         1,          # SW_NORMAL
+#     )
+
+#     if ret <= 32:
+#         # ShellExecute returns ≤32 on failure
+#         console.print(
+#             "[bold red]UAC elevation failed or was denied "
+#             f"(code {ret}). Exiting.[/bold red]"
+#         )
+#         sys.exit(1)
+
+#     # The elevated copy is now starting — exit this unelevated instance
+#     console.print("[yellow]Elevated process launched. This window will close.[/yellow]")
+#     sys.exit(0)
+
 def _elevate_windows() -> None:
-    """Re-launch via Windows UAC ShellExecute runas verb."""
+    """
+    Re-launch this script elevated via UAC, keeping a visible console window.
+    Passes the current session_id so the elevated copy skips re-login.
+    """
     import ctypes
 
     console.print(
@@ -125,29 +163,39 @@ def _elevate_windows() -> None:
     )
     time.sleep(1)
 
-    # Rebuild the exact command line used to start this process
-    script = os.path.abspath(sys.argv[0])
-    params  = " ".join(f'"{a}"' for a in sys.argv[1:])
+    script  = os.path.abspath(sys.argv[0])
+    # Pass session_id as a flag so the elevated process can resume
+    extra_args = sys.argv[1:]
+    if current_session_id and "--session" not in extra_args:
+        extra_args = ["--session", current_session_id] + extra_args
+
+    # Build the argument string for ShellExecuteW
+    all_args = [f'"{script}"'] + [f'"{a}"' for a in extra_args]
+    params   = " ".join(all_args)
 
     ret = ctypes.windll.shell32.ShellExecuteW(
-        None,       # hwnd
-        "runas",    # verb  ← this triggers the UAC dialog
+        None,
+        "runas",
         sys.executable,
-        f'"{script}" {params}'.strip(),
-        None,       # working directory (inherit)
-        1,          # SW_NORMAL
+        params,
+        os.getcwd(),   # preserve working directory
+        1,             # SW_NORMAL — ensures a visible window
     )
 
     if ret <= 32:
-        # ShellExecute returns ≤32 on failure
-        console.print(
-            "[bold red]UAC elevation failed or was denied "
-            f"(code {ret}). Exiting.[/bold red]"
-        )
-        sys.exit(1)
+        error_msgs = {
+            2:  "File not found",
+            3:  "Path not found",
+            5:  "Access denied (UAC rejected or no admin account)",
+            1223: "UAC prompt was cancelled by the user",
+        }
+        reason = error_msgs.get(ret, f"Unknown error code {ret}")
+        console.print(f"[bold red]UAC elevation failed:[/bold red] {reason}")
+        console.print("[yellow]Continuing in unelevated mode...[/yellow]")
+        return   # ← don't exit; fall back to unelevated instead of dying
 
-    # The elevated copy is now starting — exit this unelevated instance
-    console.print("[yellow]Elevated process launched. This window will close.[/yellow]")
+    console.print("[yellow]Elevated window opened. This window will now close.[/yellow]")
+    time.sleep(1)   # give user a moment to read the message
     sys.exit(0)
 
 
