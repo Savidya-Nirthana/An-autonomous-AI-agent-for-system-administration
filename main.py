@@ -182,15 +182,9 @@ async def main_loop():
 
 if __name__ == "__main__":
     try:
-        try:
-            loop = asyncio.get_event_loop()
-        except RuntimeError:
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-
-        loop.run_until_complete(main_loop())
-    except Exception as exc:
-        import traceback
-        print(f"\n[FATAL ERROR] {exc}")
-        traceback.print_exc()
-        input("\nPress Enter to exit...")
+        loop = asyncio.get_event_loop()
+    except RuntimeError:
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+    
+    loop.run_until_complete(main_loop())
