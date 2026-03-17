@@ -2,17 +2,16 @@ from qdrant_client import QdrantClient
 from qdrant_client.http import models
 from qdrant_client.models import VectorParams, Distance, PointStruct
 from src.infrastructure.llm import get_default_embedding
+from dotenv import load_dotenv
 from datetime import datetime
 import uuid
+import os
 from src.infrastructure.config import EMBEDDING_DIM
-from paths import QDRANT_DATA_DIR
 
-
+load_dotenv()
 class QdrantStorage:
-    def __init__(self, collection: str = "chatops", dim=EMBEDDING_DIM):
-        # Local embedded mode — no Docker/server needed
-        QDRANT_DATA_DIR.mkdir(parents=True, exist_ok=True)
-        self.client = QdrantClient(path=str(QDRANT_DATA_DIR))
+    def __init__(self, url: str = "http://localhost:6333", collection: str = "chatops" , dim=EMBEDDING_DIM):
+        self.client = QdrantClient(url=url, timeout=30)
         self.collection = collection
         self.embeddings = get_default_embedding()
 
@@ -42,7 +41,7 @@ class QdrantStorage:
         
         self.client.upsert(
             collection_name=self.collection,
-            points=[PointStruct(id=point_id, vector=vecotor, payload={"session_id": session_id, "full_conversation": memory_object, "timestamp": datetime.now().isoformat()})]
+            points=[PointStruct(id=point_id, vector=vecotor, payload={"session_id": session_id, "full_conversation": memory_object, "timestamp": datetime.now()})]
         )   
 
 
@@ -63,16 +62,24 @@ class QdrantStorage:
         )
 
         context = []
+        # sources = set()
+
+        # print(result)
 
         for r in result.points:
             payload = getattr(r, "payload", None) or {}
             text = payload.get("full_conversation", "")
+            # session_id = payload.get("session_id", "")
             if text:
                 context.append(text)
+                # sources.add(session_id)
             
+        # if len(context) >= 1:
+        #     context = context[0]
+
         target = []
         for c in context:
             for i in c:
                 if isinstance(i, dict):
                     target.append(i)
-        return target
+        return target

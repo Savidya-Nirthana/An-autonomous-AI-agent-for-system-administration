@@ -76,3 +76,74 @@ def show_read_file_ui(info: dict):
         console.print(content)
 
     console.print("-" * 60)
+
+
+def show_tree_ui(data: dict):
+    if not data.get("success"):
+        console.print(Panel(f"[bold red]Error:[/] {data.get('error', 'Unknown error')}", title="🌳 Directory Tree Error", border_style="red"))
+        return
+
+    output = data.get("output", "No output from tree command.")
+    path = data.get("path", "Unknown path")
+
+    console.print(Panel(
+        output.strip(),
+        title=f"🌳 [bold white]Directory Tree: {path}[/bold white]",
+        border_style="green",
+        expand=False
+    ))
+
+
+def show_chkdsk_ui(data: dict):
+    drive = data.get("drive", "N/A")
+    success = data.get("success", False)
+    output = data.get("data", "No output available.")
+    flags = data.get("flags", "None")
+    
+    color = "green" if success else "yellow" # yellow because it often requires a restart
+    status_text = "COMPLETED" if success else "SCHEDULED / FAILED"
+    
+    title = f"🛠️ Disk Repair Scan ({drive}): {status_text}"
+    
+    summary = f"[bold cyan]Flags used:[/] {flags}\n\n"
+    summary += output.strip()
+    
+    console.print(Panel(summary, title=title, border_style=color))
+
+
+def show_permissions_ui(data: dict):
+    target = data.get("target", "N/A")
+    success = data.get("success", False)
+    output = data.get("data", "No output available.")
+    recursive = data.get("recursive", False)
+    
+    color = "green" if success else "red"
+    status_text = "SUCCESS" if success else "FAILED"
+    
+    title = f"🛡️ Permission Reset: {status_text}"
+    
+    info = f"[bold cyan]Target:[/] {target}\n"
+    info += f"[bold cyan]Recursive:[/] {'Yes' if recursive else 'No'}\n"
+    info += f"─" * 40 + "\n"
+    info += output.strip()
+    
+    console.print(Panel(info, title=title, border_style=color))
+
+
+def show_take_ownership_ui(data: dict):
+    target = data.get("target", "N/A")
+    success = data.get("success", False)
+    output = data.get("data", "No output available.")
+    recursive = data.get("recursive", False)
+    
+    color = "green" if success else "red"
+    status_text = "SUCCESS" if success else "FAILED"
+    
+    title = f"🔑 Take Ownership: {status_text}"
+    
+    info = f"[bold cyan]Target:[/] {target}\n"
+    info += f"[bold cyan]Recursive:[/] {'Yes' if recursive else 'No'}\n"
+    info += f"─" * 40 + "\n"
+    info += output.strip()
+    
+    console.print(Panel(info, title=title, border_style=color))

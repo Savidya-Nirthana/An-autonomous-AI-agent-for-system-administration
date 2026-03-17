@@ -10,7 +10,6 @@ SYSTEM = platform.system().lower()
 if SYSTEM == "windows":
     ALLOWED_ROOTS = [
         Path(r"D:\ai\ChatOps\var\app\uploads").resolve(),
-        Path(r"D:\test2001").resolve(),
     ]
 else:
     ALLOWED_ROOTS = [

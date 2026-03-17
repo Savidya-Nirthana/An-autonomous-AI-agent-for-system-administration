@@ -150,9 +150,6 @@ def get_requests(session_id: str):
                             content = f.read()
                             file_contents.append(f"\n--- Content of {filename} ---\n{content}\n--- End of {filename} ---")
                             console.print(f"[bold green]Added context from file: {filename}[/bold green]")
-                        
-                        # Replace the @filename in the prompt with the absolute path
-                        request = request.replace(word, os.path.abspath(filename))
                     except Exception as e:
                         console.print(f"[bold red]Failed to read file {filename}: {e}[/bold red]")
                 else:

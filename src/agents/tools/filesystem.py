@@ -314,4 +314,234 @@ def read_file(path: str) -> Dict[str, Any]:
             "error": str(e),
             "ui_type": "read_file",
         }
+
+
+@tool
+def get_directory_tree(path: str = ".") -> Dict[str, Any]:
+    """
+    Returns a graphical directory structure using the 'tree' command.
+    Works best on Windows with 'tree /f /a'.
+    
+    args:
+        path (str): The root directory to start the tree from (default is current).
+    """
+    system = platform.system().lower()
+    
+    try:
+        # Resolve path
+        resolved = Path(path).expanduser()
+        if not resolved.is_absolute():
+            resolved = (WORKING_STATE["cwd"] / resolved).resolve()
+
+        if not resolved.exists():
+            return {
+                "success": False,
+                "error": f"Path not found: {resolved}",
+                "ui_type": "directory_tree"
+            }
+
+        if system == "windows":
+            # /f: list files, /a: use text characters instead of graphic lines for better console compatibility
+            cmd = ["tree", str(resolved), "/f", "/a"]
+            use_shell = True
+        else:
+            # Unix/Linux 'tree' command (if installed)
+            cmd = ["tree", str(resolved)]
+            use_shell = False
+            
+        import subprocess
+        result = subprocess.run(cmd, capture_output=True, text=True, errors="replace", timeout=30, shell=use_shell)
+        
+        if result.returncode == 0:
+            return {
+                "success": True,
+                "path": str(resolved),
+                "output": result.stdout,
+                "ui_type": "directory_tree"
+            }
+        else:
+            return {
+                "success": False,
+                "error": f"Tree command failed: {result.stderr or result.stdout}",
+                "ui_type": "directory_tree"
+            }
+
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e),
+            "ui_type": "directory_tree"
+        }
+
+@tool
+def reset_permissions(path: str, recursive: bool = True) -> Dict[str, Any]:
+    """
+    Reset file or directory permissions to their default inherited values (Windows only).
+    Equivalent to 'icacls <path> /reset'.
+    
+    args:
+        path (str): The path to the file or directory.
+        recursive (bool): If True, applies the reset recursively to all subfiles and folders (/t).
+    """
+    system = platform.system().lower()
+    if system != "windows":
+        return {
+            "success": False,
+            "error": "This tool is only supported on Windows.",
+            "ui_type": "permissions_fix"
+        }
+
+    try:
+        resolved = Path(path).expanduser()
+        if not resolved.is_absolute():
+            resolved = (WORKING_STATE["cwd"] / resolved).resolve()
+            
+        if not resolved.exists():
+            return {
+                "success": False,
+                "error": f"Path does not exist: {resolved}",
+                "ui_type": "permissions_fix"
+            }
+
+        is_dir = resolved.is_dir()
+        cmd = ["icacls", str(resolved), "/reset"]
+        if recursive and is_dir:
+            cmd.append("/t")
+            
+        import subprocess
+        result = subprocess.run(cmd, capture_output=True, text=True, errors="replace", timeout=60)
+        
+        stdout = result.stdout or ""
+        stderr = result.stderr or ""
+        full_output = (stdout + "\n" + stderr).strip()
+        
+        # More resilient success check
+        # If it says it processed at least one file and it was the target file, consider it success
+        success = result.returncode == 0
+        if "Successfully processed" in full_output and not "Successfully processed 0 files" in full_output:
+             success = True 
+
+        return {
+            "success": success,
+            "data": full_output,
+            "output": f"Permission reset attempted for: {resolved}",
+            "ui_type": "permissions_fix",
+            "target": str(resolved),
+            "recursive": recursive
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e),
+            "ui_type": "permissions_fix",
+            "target": path
+        }
+
+@tool
+def run_chkdsk(drive: str, fix: bool = True, recover: bool = False) -> Dict[str, Any]:
+    """
+    Run the Check Disk errors (chkdsk) utility on a specified drive (Windows only).
+    
+    args:
+        drive (str): The drive letter (e.g., "C", "D").
+        fix (bool): If True, runs with /f to fix errors on the disk.
+        recover (bool): If True, runs with /r to locate bad sectors and recover readable information.
+    """
+    system = platform.system().lower()
+    if system != "windows":
+        return {
+            "success": False,
+            "error": "This tool is only supported on Windows.",
+            "ui_type": "chkdsk"
+        }
+
+    try:
+        # Normalize drive letter
+        drive_letter = drive.strip().upper()[0]
+        cmd = ["chkdsk", f"{drive_letter}:"]
+        
+        if recover:
+            cmd.append("/r")
+        elif fix:
+            cmd.append("/f")
+            
+        import subprocess
+        # Note: CHKDSK /F usually requires volume to be locked or scheduled for restart
+        result = subprocess.run(cmd, capture_output=True, text=True, errors="replace", timeout=120)
+        
+        return {
+            "success": result.returncode == 0,
+            "data": result.stdout or result.stderr,
+            "output": f"Disk check attempted on drive {drive_letter}:",
+            "ui_type": "chkdsk",
+            "drive": f"{drive_letter}:",
+            "flags": " ".join(cmd[2:]) if len(cmd) > 2 else "None"
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e),
+            "drive": drive
+        }
+
+@tool
+def take_ownership(path: str, recursive: bool = True) -> Dict[str, Any]:
+    """
+    Take ownership of a file or directory (Windows only).
+    Equivalent to 'takeown /f <path>'.
+    
+    args:
+        path (str): The path to the file or directory.
+        recursive (bool): If True, takes ownership recursively (/r).
+    """
+    system = platform.system().lower()
+    if system != "windows":
+        return {
+            "success": False,
+            "error": "This tool is only supported on Windows.",
+            "ui_type": "take_ownership"
+        }
+
+    try:
+        resolved = Path(path).expanduser()
+        if not resolved.is_absolute():
+            resolved = (WORKING_STATE["cwd"] / resolved).resolve()
+            
+        if not resolved.exists():
+            return {
+                "success": False,
+                "error": f"Path does not exist: {resolved}",
+                "ui_type": "take_ownership"
+            }
+
+        is_dir = resolved.is_dir()
+        cmd = ["takeown", "/f", str(resolved)]
+        if recursive and is_dir:
+            cmd.append("/r")
+            cmd.extend(["/d", "y"])
+            
+        import subprocess
+        result = subprocess.run(cmd, capture_output=True, text=True, errors="replace", timeout=60)
+        
+        # takeown success check
+        success = result.returncode == 0
+        full_output = (result.stdout or "") + (result.stderr or "")
+        if "SUCCESS" in full_output.upper():
+            success = True
+        
+        return {
+            "success": result.returncode == 0,
+            "data": result.stdout or result.stderr,
+            "output": f"Ownership change attempted for: {resolved}",
+            "ui_type": "take_ownership",
+            "target": str(resolved),
+            "recursive": recursive
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e),
+            "ui_type": "take_ownership",
+            "target": path
+        }
     

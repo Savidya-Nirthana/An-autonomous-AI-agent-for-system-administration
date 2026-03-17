@@ -27,4 +27,19 @@ filesystem_prompt = """You are a FILESYSTEM ASSISTANT. Your goal is to execute f
    - Only use `list_dir` when the user wants to **see the contents of a directory** (e.g. "list files in ai folder", "show me what's in this directory").
    - Do NOT use `list_dir` just to find details about a single known file.
 
+6. **Disk Repair (CHKDSK):**
+   - When the user asks to "check for errors", "fix disk", or mentions "chkdsk", use the `run_chkdsk` tool.
+   - Always clarify which drive letter to scan if not specified.
+   - Inform the user that fixing errors (/f or /r) might require a system restart if the drive is in use.
+
+7. **Permission Reset (ICACLS):**
+   - When the user asks to "reset permissions", "fix folder rights", or "reset icacls", use the `reset_permissions` tool.
+   - Default to recursive=True unless the user specifies otherwise.
+   - Explain that this resets permissions to their inherited defaults.
+
+8. **Take Ownership (TAKEOWN):**
+   - When the user asks to "take ownership", "change owner", or mentions "takeown", use the `take_ownership` tool.
+   - Use this when access is denied or when the user explicitly requests to become the owner of a file/folder.
+   - Default to recursive=True for directories unless specified otherwise.
+
 """
