@@ -19,6 +19,8 @@ AGENT_LABELS = {
     "network":    "Network",
     "firewall":   "Firewall",
     "monitoring": "Monitoring",
+    "users":      "Users",
+    "servers":    "Servers",
     "admin":      "Admin",
     "FINISH":     "Done",
 }

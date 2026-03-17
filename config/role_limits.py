@@ -13,6 +13,7 @@ ROLE_PERMISSIONS: dict[str, list[str]] = {
         "users",
         "system",
         "monitoring",
+        "servers",
         "admin",          # admin node — root_admin only
     ],
     "admin": [
@@ -21,6 +22,7 @@ ROLE_PERMISSIONS: dict[str, list[str]] = {
         "firewall",
         "monitoring",
         "users",
+        "servers",
         "system",
         # no "admin" node
     ],
@@ -28,6 +30,7 @@ ROLE_PERMISSIONS: dict[str, list[str]] = {
         "filesystem",
         "network",
         "monitoring",
+        "servers",
         # no "firewall" or "admin" node
     ],
 }
