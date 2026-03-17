@@ -11,6 +11,7 @@ import subprocess
 import sys
 import time
 import uuid
+import ctypes
 from typing import Optional
 
 import pyfiglet
@@ -20,6 +21,7 @@ from rich.live import Live
 from rich.panel import Panel
 from rich.text import Text
 from rich.markup import escape
+from rich.table import Table
 
 # ── Auth imports ──────────────────────────────────────────────────────────────
 from auth import auth_service, get_db, User, UserRole
@@ -279,6 +281,32 @@ def admin_reset_password() -> None:
     else:
         console.print(f"[bold green]Password reset for '{username}'.[/bold green]")
 
+# ── help ────────────────────────────────────────────────
+
+def _cmd_help() -> None:
+    
+    table = Table(title="Available Commands", header_style="bold cyan")
+    table.add_column("Command",     style="green")
+    table.add_column("Description", style="white")
+    table.add_column("Role",        style="yellow")
+
+    all_commands = [
+        ("help",           "Show this help",              "all"),
+        ("exit",           "Logout and quit",             "all"),
+        ("adduser",        "Create a new user",           "root_admin"),
+        ("listusers",      "List all users",              "root_admin"),
+        ("deactivateuser", "Deactivate a user account",   "root_admin"),
+        ("resetpassword",  "Reset a user's password",     "root_admin"),
+    ]
+
+    role = current_user.role.value if current_user else "unknown"
+    for cmd, desc, required_role in all_commands:
+        # Only show commands the current user can actually use
+        if required_role == "all" or role == required_role:
+            table.add_row(cmd, desc, required_role)
+
+    console.print(table)
+
 
 # ── Main prompt loop helpers ──────────────────────────────────────────────────
 
@@ -308,6 +336,8 @@ def get_requests(session_id: str) -> str | bool:
             admin_deactivate_user(); return ""
         if request.lower() == "resetpassword":
             admin_reset_password(); return ""
+        if request.lower() == "help":
+            _cmd_help(); return ""
 
         # ── Session validation on every request ───────────────────────────────
         user = validate_current_session()
@@ -368,3 +398,27 @@ def clear_console() -> None:
         os.system("cls")
     else:
         os.system("clear && printf '\\033[3J'")
+
+
+# ── Windows-specific helpers (Windows Administrator Privileges) ────────────────────────────────────────────────
+
+def run_as_admin():
+    try:
+        # Check if already admin
+        if ctypes.windll.shell32.IsUserAnAdmin():
+            return True
+
+        # Relaunch as admin
+        ctypes.windll.shell32.ShellExecuteW(
+            None,
+            "runas",                # <-- triggers UAC
+            sys.executable,         # python executable
+            " ".join(sys.argv),     # current script args
+            None,
+            1
+        )
+        sys.exit()  # kill current process
+
+    except Exception as e:
+        print(f"Failed to elevate: {e}")
+        sys.exit(1)

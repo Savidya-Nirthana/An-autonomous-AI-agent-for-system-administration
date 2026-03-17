@@ -36,6 +36,7 @@ from cli.cli_functions import (
     pending_message,
     welcome_banner,
     welcome_msg,
+    run_as_admin
 )
 
 # ── Memory (Qdrant vector store) ──────────────────────────────────────────────
@@ -52,6 +53,10 @@ def main() -> None:
     # Creates the users / sessions / audit_logs tables if they don't exist yet.
     # Safe to call on every startup; uses CREATE TABLE IF NOT EXISTS internally.
     init_db()
+
+    # ── 1.5. Run as admin if on Windows ────────────────────────────────────────
+    if sys.platform == "win32":
+        run_as_admin()
 
     # ── 2. ASCII banner ───────────────────────────────────────────────────────
     welcome_banner()
