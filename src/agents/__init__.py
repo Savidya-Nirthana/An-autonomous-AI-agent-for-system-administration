@@ -11,6 +11,8 @@ from .tools.filesystem import *
 from .tools.network import *
 from .tools.firewallandsecurity import *
 from .tools.usagemonitoring import *
+from .tools.servers import *
+from .tools.usermanagement import *
 
 __all__ = [
     "chatops_graph",
@@ -35,4 +37,16 @@ __all__ = [
     "cpu_usage",
     "memory_usage",
     "disk_usage",
+    # user tools
+    "list_users",
+    "add_user",
+    "delete_user",
+    "change_password",
+    "list_groups",
+    "add_to_group",
+    "remove_from_group",
+    "ssh_connect_password",
+    "ssh_disconnect",
+    "ssh_execute_command",
+    "webserver",
 ]

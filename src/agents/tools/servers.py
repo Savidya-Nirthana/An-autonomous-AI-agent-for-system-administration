@@ -5,6 +5,14 @@ import paramiko
 from cli.checkOS import checkOS
 
 
+# Global state to maintain SSH connection
+SSH_STATE = {
+    "client": None,
+    "host": None,
+    "username": None
+}
+
+
 # ── Helper: create SSH client with password auth ─────────────────────
 def _ssh_connect_password(host: str, port: int, username: str, password: str) -> paramiko.SSHClient:
     """Create and return an SSH client connected via username/password."""
@@ -36,8 +44,8 @@ def ssh_connect_password(
     port: int = 22,
 ) -> Dict:
     """
-    Create and test an SSH connection to a remote server using username and password authentication.
-    Use this tool to establish, verify, and test SSH connectivity to a remote machine.
+    Create an SSH connection using username and password authentication, keeping the session open for future commands.
+    Use this tool to establish your initial connection to a remote machine before running commands.
     Returns basic server information (hostname, OS, uptime) on success.
 
     Args:
@@ -46,8 +54,21 @@ def ssh_connect_password(
         password: SSH password for the user.
         port: SSH port (default 22).
     """
+    global SSH_STATE
     try:
+        # Close existing connection if there is one
+        if SSH_STATE["client"] is not None:
+            try:
+                SSH_STATE["client"].close()
+            except Exception:
+                pass
+                
         client = _ssh_connect_password(host, port, username, password)
+
+        # Store in state for future commands
+        SSH_STATE["client"] = client
+        SSH_STATE["host"] = host
+        SSH_STATE["username"] = username
 
         # Gather basic info from the connected server
         info = {}
@@ -58,12 +79,12 @@ def ssh_connect_password(
             except Exception:
                 info[label] = "(unavailable)"
 
-        client.close()
-
+        # Important: DO NOT close the client here so the session persists.
+        
         return {
             "success": True,
             "result": (
-                f"SSH connection to {username}@{host}:{port} established successfully.\n"
+                f"SSH connection to {username}@{host}:{port} established successfully and kept OPEN.\n"
                 f"Hostname : {info.get('hostname', 'N/A')}\n"
                 f"OS       : {info.get('os', 'N/A')}\n"
                 f"Uptime   : {info.get('uptime', 'N/A')}"
@@ -72,6 +93,9 @@ def ssh_connect_password(
             "ui_type": "normal_window",
         }
     except Exception as e:
+        SSH_STATE["client"] = None
+        SSH_STATE["host"] = None
+        SSH_STATE["username"] = None
         return {
             "success": False,
             "error": str(e),
@@ -84,23 +108,106 @@ def ssh_connect_password(
 # ══════════════════════════════════════════════════════════════════════
 
 @tool
-def ssh_disconnect(
-    host: str,
-    username: str,
-) -> Dict:
+def ssh_disconnect() -> Dict:
     """
-    End and explicitly close the SSH connection to the remote server.
-    Use this tool to formally terminate the remote session in your workflow.
+    Explicitly close the active SSH connection to the remote server.
+    Use this tool to formally terminate the remote session when finished.
+    """
+    global SSH_STATE
+    client = SSH_STATE.get("client")
+    host = SSH_STATE.get("host", "unknown host")
+    username = SSH_STATE.get("username", "unknown user")
+    
+    if client is not None:
+        try:
+            client.close()
+            success = True
+            msg = f"SSH connection to {username}@{host} has been securely closed and terminated."
+        except Exception as e:
+            success = False
+            msg = f"Error disconnecting: {e}"
+            
+        SSH_STATE["client"] = None
+        SSH_STATE["host"] = None
+        SSH_STATE["username"] = None
+        
+        return {
+            "success": success,
+            "result": msg if success else None,
+            "error": msg if not success else None,
+            "ui_type": "normal_window",
+        }
+    else:
+        return {
+            "success": False,
+            "error": "No active SSH connection to disconnect.",
+            "ui_type": "normal_window",
+        }
 
-    Args:
-        host: IP address or hostname of the remote server.
-        username: SSH username on the remote server.
+
+# ══════════════════════════════════════════════════════════════════════
+#  SSH EXECUTE COMMAND TOOL
+# ══════════════════════════════════════════════════════════════════════
+
+@tool
+def ssh_execute_command(command: str, timeout: int = 30) -> Dict:
     """
-    return {
-        "success": True,
-        "result": f"SSH connection to {username}@{host} has been securely closed and terminated.",
-        "ui_type": "normal_window",
-    }
+    Execute a shell command on the currently connected remote SSH server.
+    You MUST call `ssh_connect_password` BEFORE using this tool.
+    
+    Args:
+        command: The shell command string to execute remotely.
+        timeout: Maximum seconds to wait for command completion (default: 30).
+    """
+    global SSH_STATE
+    client = SSH_STATE.get("client")
+    host = SSH_STATE.get("host")
+    username = SSH_STATE.get("username")
+    
+    if client is None:
+        return {
+            "success": False,
+            "error": "Not connected to any SSH server. You must connect first.",
+            "ui_type": "normal_window",
+        }
+        
+    try:
+        # Check transport is basically still alive
+        if not client.get_transport() or not client.get_transport().is_active():
+             return {
+                 "success": False,
+                 "error": "The SSH connection was dropped or timed out. Please reconnect.",
+                 "ui_type": "normal_window",
+             }
+
+        _stdin, stdout, stderr = client.exec_command(command, timeout=timeout)
+        
+        stdout_text = stdout.read().decode("utf-8", errors="replace").strip()
+        stderr_text = stderr.read().decode("utf-8", errors="replace").strip()
+        
+        # Determine success from exit code (defaults to 0 if command ran correctly)
+        exit_status = stdout.channel.recv_exit_status()
+        success = (exit_status == 0)
+
+        output = []
+        if stdout_text:
+            output.append("STDOUT:\n" + stdout_text)
+        if stderr_text:
+            output.append("STDERR:\n" + stderr_text)
+            
+        result_str = "\n".join(output) if output else "(no output)"
+
+        return {
+            "success": success,
+            "result": f"Exit Status: {exit_status}\n{result_str}",
+            "ui_type": "normal_window",
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": f"Failed to execute command '{command}': {str(e)}",
+            "ui_type": "normal_window",
+        }
 
 
 #tested on windows

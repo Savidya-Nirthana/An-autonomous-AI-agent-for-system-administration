@@ -17,7 +17,8 @@ from src.agents.tools.usermanagement import (
     createGroup,
     deleteGroup,
     listUsers,
-    listGroups
+    listGroups,
+    listUsersByGroup
 )
 from .helpers import build_agent_messages, extract_final_response
 
@@ -42,7 +43,8 @@ _TOOLS = [
     createGroup,
     deleteGroup,
     listUsers,
-    listGroups
+    listGroups,
+    listUsersByGroup
 ]
 
 _agent = create_react_agent(

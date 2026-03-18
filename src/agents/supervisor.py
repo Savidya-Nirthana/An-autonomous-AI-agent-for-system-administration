@@ -41,7 +41,10 @@ AVAILABLE AGENTS & PRIORITIES:
 3. filesystem → file/folder operations (create, delete, list, navigate), DISK REPAIR (chkdsk), and PERMISSION FIXES (icacls).
 4. monitoring → system health status (CPU, memory, disk usage %, processes), system details (OS/BIOS/uptime/user information/system logs), installed applications, and LISTING ALL INSTALLED DRIVERS. This agent also handles terminating/killing processes.
 5. admin → answer questions using ONLY chat memory. Use this for general talk.
-6. FINISH → ALL tasks in the user's request are complete.
+6. system → system operations (update packages, shutdown, restart, sync time, view uptime)
+7. servers → creating web servers and SSH remote operations (connect/disconnect/test SSH connections, file upload/download via SCP, remote command execution on other PCs/servers, supports password and RSA key auth)
+8. users → ALL local system user account management, including creating/adding users, deleting users, changing passwords, and managing user groups. Route here for "create user account", "add user", etc.
+9. FINISH → ALL tasks in the user's request are complete.
 
 RULES:
 1. Route to the BEST agent for the user's request.

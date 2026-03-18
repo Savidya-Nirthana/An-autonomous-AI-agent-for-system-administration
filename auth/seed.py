@@ -26,8 +26,8 @@ def seed() -> None:
 
     init_db()  # ensure tables exist
 
-    username = os.getenv("ROOT_ADMIN_USERNAME", "root_admin")
-    password = os.getenv("ROOT_ADMIN_PASSWORD", "ChangeMe123!")
+    username = os.getenv("ROOT_ADMIN_USERNAME", "root")
+    password = os.getenv("ROOT_ADMIN_PASSWORD", "root")
 
     db = SessionLocal()
     try:

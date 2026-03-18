@@ -356,19 +356,22 @@ def check_disk_free() -> Dict[str, Any]:
         
         if result.returncode != 0:
             # Fallback to PowerShell if fsutil fails (typically due to lack of admin privileges)
-            ps_cmd = ["powershell", "-Command", "Get-PSDrive C | Select-Object @{n='Free';e={$_.Free}}, @{n='Total';e={$_.Used + $_.Free}} | ConvertTo-Json"]
+            ps_cmd = ["powershell", "-Command", "Get-PSDrive C | Select-Object Used, Free | ConvertTo-Json"]
             ps_result = subprocess.run(ps_cmd, capture_output=True, text=True, errors="replace", timeout=15)
             
             if ps_result.returncode == 0:
                 import json
                 try:
                     ps_data = json.loads(ps_result.stdout)
+                    used = ps_data.get("Used", 0)
+                    free = ps_data.get("Free", 0)
+                    total = used + free
                     return {
                         "success": True,
                         "ui_type": "disk_free",
-                        "Total # of bytes": ps_data.get("Total", 0),
-                        "Total # of free bytes": ps_data.get("Free", 0),
-                        "Total # of avail free bytes": ps_data.get("Free", 0),
+                        "Total # of bytes": total,
+                        "Total # of free bytes": free,
+                        "Total # of avail free bytes": free,
                         "method": "powershell_fallback"
                     }
                 except:
@@ -376,7 +379,7 @@ def check_disk_free() -> Dict[str, Any]:
 
             return {
                 "success": False,
-                "error": f"Failed to run fsutil command (Access Denied) and PowerShell fallback failed.",
+                "error": "Failed to run fsutil command (Access Denied) and PowerShell fallback failed.",
                 "ui_type": "disk_free"
             }
 
