@@ -459,56 +459,56 @@ def webserver(path: str = "./", port: int = 8080) -> Dict :
 # ) -> Dict:
 
 
-    """
-    Deploy a local SSH public key to a remote server's ~/.ssh/authorized_keys file using a password.
-    This enables passwordless (RSA key-based) login for future connections.
+    # """
+    # Deploy a local SSH public key to a remote server's ~/.ssh/authorized_keys file using a password.
+    # This enables passwordless (RSA key-based) login for future connections.
     
-    Args:
-        host: IP address or hostname of the remote server.
-        username: SSH username on the remote server.
-        password: SSH password for the user.
-        public_key_path: Full path to the local public key file (e.g., ~/.ssh/id_rsa.pub).
-        port: SSH port (default 22).
-    """
-    try:
-        public_key_path = os.path.expanduser(public_key_path)
-        with open(public_key_path, "r") as f:
-            pub_key_content = f.read().strip()
+    # Args:
+    #     host: IP address or hostname of the remote server.
+    #     username: SSH username on the remote server.
+    #     password: SSH password for the user.
+    #     public_key_path: Full path to the local public key file (e.g., ~/.ssh/id_rsa.pub).
+    #     port: SSH port (default 22).
+    # """
+    # try:
+    #     public_key_path = os.path.expanduser(public_key_path)
+    #     with open(public_key_path, "r") as f:
+    #         pub_key_content = f.read().strip()
             
-        client = _ssh_connect_password(host, port, username, password)
+    #     client = _ssh_connect_password(host, port, username, password)
         
-        # Create .ssh directory if it doesn't exist, and append the key
-        commands = [
-            "mkdir -p ~/.ssh",
-            "chmod 700 ~/.ssh",
-            f"echo '{pub_key_content}' >> ~/.ssh/authorized_keys",
-            "chmod 600 ~/.ssh/authorized_keys"
-        ]
+    #     # Create .ssh directory if it doesn't exist, and append the key
+    #     commands = [
+    #         "mkdir -p ~/.ssh",
+    #         "chmod 700 ~/.ssh",
+    #         f"echo '{pub_key_content}' >> ~/.ssh/authorized_keys",
+    #         "chmod 600 ~/.ssh/authorized_keys"
+    #     ]
         
-        for cmd in commands:
-            stdin, stdout, stderr = client.exec_command(cmd)
-            exit_status = stdout.channel.recv_exit_status()
-            if exit_status != 0:
-                error_msg = stderr.read().decode().strip()
-                client.close()
-                return {
-                    'success': False,
-                    'error': f"Failed to execute '{cmd}': {error_msg}",
-                    'ui_type': 'normal_window'
-                }
+    #     for cmd in commands:
+    #         stdin, stdout, stderr = client.exec_command(cmd)
+    #         exit_status = stdout.channel.recv_exit_status()
+    #         if exit_status != 0:
+    #             error_msg = stderr.read().decode().strip()
+    #             client.close()
+    #             return {
+    #                 'success': False,
+    #                 'error': f"Failed to execute '{cmd}': {error_msg}",
+    #                 'ui_type': 'normal_window'
+    #             }
                 
-        client.close()
-        return {
-            'success': True,
-            'result': f"Successfully deployed public key to {username}@{host}. You can now use RSA key authenication.",
-            'ui_type': 'normal_window'
-        }
-    except Exception as e:
-        return {
-            'success': False,
-            'error': str(e),
-            'ui_type': 'normal_window'
-        }
+    #     client.close()
+    #     return {
+    #         'success': True,
+    #         'result': f"Successfully deployed public key to {username}@{host}. You can now use RSA key authenication.",
+    #         'ui_type': 'normal_window'
+    #     }
+    # except Exception as e:
+    #     return {
+    #         'success': False,
+    #         'error': str(e),
+    #         'ui_type': 'normal_window'
+    #     }
 
 
 # ssh_upload_file_password,
